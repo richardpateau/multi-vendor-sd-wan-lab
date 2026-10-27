@@ -300,9 +300,9 @@ Here is the updated **Evidence Index** mapped to the exact file names from your 
 
 ---
 
-### ️ What's Next?
+### What's Next?
 
 With foundational underlay health monitoring and link-state failover fully validated, the next step is to evolve from IP-based routing to **Application-Aware Routing**. 
 
 Continue to the next task to explore dynamic traffic steering:
-- **[Task 2: Application-Aware Routing & Dynamic SaaS Steering (FQDN)](../Policy%202%20Application-Aware/)** – Utilizing FQDN address objects to dynamically steer critical SaaS traffic over optimal WAN paths based on domain names rather than static IPs.
+- **[Task 2: Application-Aware Routing & Dynamic SaaS Steering (FQDN)](../02-application-aware-routing/)** – Utilizing FQDN address objects to dynamically steer critical SaaS traffic over optimal WAN paths based on domain names rather than static IPs.
