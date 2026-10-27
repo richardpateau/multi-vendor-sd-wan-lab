@@ -1,0 +1,209 @@
+
+config vpn ipsec phase1-interface
+    edit "HQ-BRANCH-VPN"
+        set interface "port2"
+        set ike-version 2
+        set remote-gw 10.0.1.2
+        set psksecret 
+        set proposal des-sha256
+        set dpd on-idle
+        set auto-negotiate enable
+    next
+    edit "HQ-BRANCH-VPN-2"
+        set interface "port3"
+        set ike-version 2
+        set remote-gw 10.0.2.2
+        set psksecret Pateau1!
+        set proposal des-sha256
+        set dpd on-idle
+        set auto-negotiate enable
+    next
+end
+
+config vpn ipsec phase1-interface
+    edit "HQ-BRANCH-VPN"
+        set interface "port2"
+        set ike-version 2
+        set remote-gw 10.0.1.6
+        set psksecret Pateau1!
+        set proposal des-sha256
+        set dpd on-idle
+        set auto-negotiate enable
+    next
+    edit "HQ-BRANCH-VPN-2"
+        set interface "port3"
+        set ike-version 2
+        set remote-gw 10.0.2.6
+        set psksecret Pateau1!
+        set proposal des-sha256
+        set dpd on-idle
+        set auto-negotiate enable
+    next
+end
+---------------------------------------------- 
+config vpn ipsec phase2-interface
+    edit "HQ-BRANCH-VPN-P2"
+        set phase1name HQ-BRANCH-VPN 
+        set proposal des-sha256
+        set src-subnet 192.168.1.0 255.255.255.0
+        set dst-subnet 192.168.2.0 255.255.255.0
+        set auto-negotiate enable
+    next
+    edit "HQ-BRANCH-VPN-P2-2"
+        set phase1name HQ-BRANCH-VPN-2
+        set proposal des-sha256
+        set src-subnet 192.168.1.0 255.255.255.0
+        set dst-subnet 192.168.2.0 255.255.255.0
+        set auto-negotiate enable
+    next
+end
+
+config vpn ipsec phase2-interface
+    edit "HQ-BRANCH-VPN-P2"
+        set phase1name HQ-BRANCH-VPN 
+        set proposal des-sha256
+        set src-subnet 192.168.2.0 255.255.255.0
+        set dst-subnet 192.168.1.0 255.255.255.0
+        set auto-negotiate enable
+    next
+    edit "HQ-BRANCH-VPN-P2-2"
+        set phase1name HQ-BRANCH-VPN-2
+        set proposal des-sha256
+        set src-subnet 192.168.2.0 255.255.255.0
+        set dst-subnet 192.168.1.0 255.255.255.0
+        set auto-negotiate enable
+    next
+end
+----------------------------------------------
+BOTH (Only phase 1) 
+Create SD WAN Zone
+config system sdwan
+    config zone
+        edit "VPN"
+        next
+    end 
+    config members 
+        edit 3
+            set interface "HQ-BRANCH-VPN"
+            set zone "VPN"
+        next
+        edit 4
+            set interface "HQ-BRANCH-VPN-2"
+            set zone "VPN"
+        next
+    end
+end
+----------------------------------------------
+config router static
+    edit 0
+        set dst 192.168.2.0 255.255.255.0
+        set sdwan-zone VPN
+    next
+    edit 0
+        set dst 192.168.2.0 255.255.255.0
+        set distance 20
+        set blackhole enable
+    next
+end
+
+config router static
+    edit 0
+        set dst 192.168.1.0 255.255.255.0
+        set sdwan-zone VPN
+    next
+    edit 0
+        set dst 192.168.1.0 255.255.255.0
+        set distance 20
+        set blackhole enable
+    next
+end
+
+-------------------------------------------
+config system sdwan
+    config service
+        edit 5
+            set name "HQ-to-Branch-VPN"
+            set mode manual
+            set dst "all"
+            set priority-members 3 4
+        next
+    end
+end
+
+config system sdwan
+    config service
+        edit 5
+            set name "HQ-to-Branch-VPN"
+            set mode manual
+            set dst "all"
+            set priority-members 3 4
+        next
+    end
+end
+
+
+----------------------------------------------------
+
+config firewall policy
+    edit 10
+        set name "HQ-to-Branch-VPN"
+        set srcintf "port1"
+        set dstintf "VPN"
+        set srcaddr "all"
+        set dstaddr "BRANCH-LAN"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set nat disable
+    next
+    edit 11
+        set name "Branch-VPN-to-HQ"
+        set srcintf "VPN"
+        set dstintf "port1"
+        set srcaddr "BRANCH-LAN"
+        set dstaddr all
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set nat disable
+    next
+end
+
+config firewall policy
+    edit 10
+        set name "Branch-to-HQ-VPN"
+        set srcintf "port1"
+        set dstintf "VPN"
+        set srcaddr "all"
+        set dstaddr "HQ-LAN"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set nat disable
+    next
+    edit 11
+        set name "HQ-VPN-to-Branch"
+        set srcintf "VPN"
+        set dstintf "port1"
+        set srcaddr "HQ-LAN"
+        set dstaddr "all"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set nat disable
+    next
+end
+
+---------------------------------------
+config firewall address
+    edit "HQ-LAN"
+        set subnet 192.168.1.0 255.255.255.0
+    next
+    edit "BRANCH-LAN"
+        set subnet 192.168.2.0 255.255.255.0
+    next
+end
+-------------------------------------
+diagnose vpn ike gateway list
+diagnose vpn tunnel list
+get router info routing-table all

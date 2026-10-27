@@ -1,0 +1,27 @@
+# Secrets and environment files
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+credentials/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Editor and OS files
+.DS_Store
+.vscode/
+.idea/
+
+# Large captures and VM artifacts — review before publishing
+*.vmdk
+*.qcow2
+*.vdi
+*.ova

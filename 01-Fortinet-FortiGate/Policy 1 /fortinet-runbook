@@ -1,0 +1,328 @@
+get system status
+show system sdwan
+show router static
+diagnose sys sdwan health-check
+diagnose sys sdwan member
+diagnose sys sdwan service
+
+diagnose sniffer packet any 'icmp' 4 0 l
+--------------------------------
+HQ
+# 1. Set Static IP and Default Gateway
+ip addr flush dev eth0
+ip addr add 192.168.1.10/24 dev eth0
+ip link set eth0 up
+ip route add default via 192.168.1.1
+
+# 2. Update package list and install iperf3
+apk update
+apk add iperf3
+
+# 3. Start the iperf3 server in the background
+iperf3 -s -D
+
+# 4. Verify your IP and that the server is running
+ip addr show eth0
+ps aux | grep iperf
+-----------------------------------------
+BRANCH
+# 1. Set Static IP and Default Gateway
+ip addr flush dev eth0
+ip addr add 192.168.2.10/24 dev eth0
+ip link set eth0 up
+ip route add default via 192.168.2.1
+
+# 2. Update package list and install iperf3 + tcpdump
+apk update
+apk add iperf3 tcpdump
+
+# 3. Verify your IP and routing
+ip addr show eth0
+ip route show
+
+-----------------------------------------
+config system sdwan
+    config members
+        edit 1
+            set gateway 10.0.1.2  <-- Replace with your actual ISP-1 next-hop IP
+        next
+        edit 2
+            set gateway 10.0.2.2  <-- Replace with your actual ISP-2 next-hop IP
+        next
+    end
+end
+
+
+-----------------------------------------
+config firewall address
+    edit "Branch-Subnet"
+        set subnet 192.168.2.0 255.255.255.0
+    next
+end
+
+config firewall address
+    edit "Branch-Subnet"
+        set subnet 192.168.1.0 255.255.255.0
+    next
+end
+-----------------------------------------
+
+config system sdwan
+    config service
+        edit 1
+            set name "HQ-to-Branch"
+            set dst "Branch-Subnet"
+            set src "all"
+            set mode manual
+            set priority-members 1 2 
+        next
+    end
+end
+-----------------------------------------
+config router static
+    edit 2
+        set dst 192.168.2.0 255.255.255.0
+        set sdwan-zone "virtual-wan-link"
+    next
+end
+
+
+config router static
+    edit 2
+        set dst 192.168.1.0 255.255.255.0
+        set sdwan-zone "virtual-wan-link"
+    next
+end
+
+-----------------------------------
+HQ
+config system interface
+    edit "port1"
+        set vdom "root"
+        set ip 192.168.1.1 255.255.255.0
+        set allowaccess ping https ssh
+        set type physical
+    next
+    edit "port2"
+        set vdom "root"
+        set ip 10.0.1.2 255.255.255.252
+        set allowaccess ping
+        set type physical
+    next
+    edit "port3"
+        set vdom "root"
+        set ip 10.0.2.2 255.255.255.252
+        set allowaccess ping
+        set type physical
+    next
+end
+
+config system sdwan 
+set status enable 
+
+config system sdwan
+    config members
+        edit 1
+            set interface "port2"
+        next
+        edit 2
+            set interface "port3"
+        next
+    end
+
+    config service
+        edit 1
+            set name "Default-Route"
+            set mode manual
+            set dst "all"
+            set src "all"
+            set priority-members 1 2
+            set status enable
+            set default enable
+        next
+    end
+end
+
+config router static
+    edit 1
+        set dst 0.0.0.0 0.0.0.0
+        set sdwan-zone virtual-wan-link
+    next
+end
+end
+
+---------------------------------------------------------
+BRANCH 
+
+config system interface
+    edit "port1"
+        set vdom "root"
+        set ip 192.168.2.1 255.255.255.0
+        set allowaccess ping https ssh
+        set type physical
+    next
+    edit "port2"
+        set vdom "root"
+        set ip 10.0.1.6 255.255.255.252
+        set allowaccess ping
+        set type physical
+    next
+    edit "port3"
+        set vdom "root"
+        set ip 10.0.2.6 255.255.255.252
+        set allowaccess ping
+        set type physical
+    next
+end
+
+config system sdwan 
+set status enable  
+end
+
+config system sdwan
+    config members
+        edit 1
+            set interface "port2"
+        next
+        edit 2
+            set interface "port3"
+        next
+    end
+
+    config service
+        edit 1
+            set name "Default-Route"
+            set mode manual
+            set dst "all"
+            set src "all"
+            set priority-members 1 2
+            set status enable
+            set default enable
+        next
+    end
+end
+
+config router static
+    edit 1
+        set dst 0.0.0.0 0.0.0.0
+        set sdwan-zone virtual-wan-link
+    next
+end
+
+---------------------------------------------------------
+BOTH 
+config router static
+    edit 1
+        set dst 0.0.0.0 0.0.0.0
+        set device "virtual-wan-link"
+    next
+end
+
+config firewall policy
+    edit 1
+        set name "LAN-to-SDWAN"
+        set srcintf "port1"
+        set dstintf "virtual-wan-link"
+        set srcaddr "all"
+        set dstaddr "all"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set nat enable
+    next
+    edit 2
+        set name "SDWAN-to-LAN"
+        set srcintf "virtual-wan-link"
+        set dstintf "port1"
+        set srcaddr "all"
+        set dstaddr "all"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set nat disable
+    next
+end
+
+------------------------------------------------------------------
+config system sdwan
+    config health-check
+        edit "ISP-Link-Monitor"
+            set server 10.0.1.1
+            set members 1 2
+            set interval 200
+            set failure-threshold 3
+            set recovery-threshold 3
+        next
+    end
+    
+    config service
+        edit 1
+            set name "HQ-to-Branch-SLA"
+            set dst "Branch-Subnet"
+            set src "all"
+            set mode sla
+            set sla "ISP-Link-Monitor"
+            config members
+                edit 1
+                    set interface "port2"
+                    set priority 1
+                next
+                edit 2
+                    set interface "port3"
+                    set priority 2
+                next
+            end
+        next
+    end
+end
+
+----------------------------------------------------
+FIRST POLICY 
+config system sdwan
+    set status enable
+
+    config health-check
+        edit ISP_A_Monitor
+            set server "10.0.1.1"
+            set protocol ping
+            set members 1
+            set interval 5000
+            set failtime 3
+            set recoverytime 3
+        next
+
+        edit ISP_B_Monitor
+            set server "10.0.2.1"
+            set protocol ping
+            set members 2
+            set interval 500
+            set failtime 3
+            set recoverytime 3
+        next
+    end
+end
+
+config system sdwan
+    config service
+        edit 1
+            set name "HQ-to-Branch"
+            set mode manual
+            set dst "Branch-Subnet"
+            set src "all"
+            set mode priority
+            set health-check ISP_A_Monitor ISP_B_Monitor
+            set priority-members 1 2
+            set status enable
+        next
+    end
+end
+
+TEST ACL ISP A 
+configure terminal
+ip access-list extended BLOCK-SDWAN-PROBE
+ deny icmp host 10.0.1.2 host 10.0.1.1 echo
+ permit ip any any
+exit
+interface FastEthernet0/0
+ ip access-group BLOCK-SDWAN-PROBE in
+end

@@ -1,0 +1,65 @@
+1. Create the traffic shaper 
+
+config firewall shaper traffic-shaper
+    edit "SDWAN-QoS-Cap-2Mbps"
+        set guaranteed-bandwidth 0
+        set maximum-bandwidth 2000
+        set bandwidth-unit kbps
+        set priority high
+        set per-policy enable
+    next
+end
+
+-------------------------------
+2. Create the destination address
+
+config firewall address
+    edit "QoS-Test-Dest"
+        set subnet 192.168.1.15 255.255.255.255
+    next
+end
+
+---------------------------------
+Apply the shaper with a firewall shaping policy
+
+config firewall shaping-policy
+    edit 1
+        set name "QoS-Capped-Traffic"
+        set service "ALL"
+        set dstintf "virtual-wan-link"
+        set traffic-shaper "SDWAN-QoS-Cap-2Mbps"
+        set traffic-shaper-reverse "SDWAN-QoS-Cap-2Mbps"
+        set srcaddr "all"
+        set dstaddr "QoS-Test-Dest"
+    next
+end
+
+-----------------------
+4. Configure the SD-WAN steering rule separately
+
+
+config system sdwan
+    config service
+        edit 4
+            set name "QoS-Capped-Traffic"
+            set mode manual
+            set dst "QoS-Test-Dest"
+            set priority-members 1 2
+        next
+    end
+end
+
+
+------------------
+
+show firewall shaper traffic-shaper
+show firewall shaping-policy
+show system sdwan
+
+diagnose firewall shaper traffic-shaper list
+diagnose sys sdwan health-check
+diagnose sys sdwan service
+diagnose firewall shaper traffic-shaper list
+diagnose sys session filter clear
+diagnose sys session filter dst 192.168.60.10
+diagnose sys session list

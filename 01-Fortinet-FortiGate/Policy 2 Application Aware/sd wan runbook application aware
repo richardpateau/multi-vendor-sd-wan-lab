@@ -1,0 +1,26 @@
+config firewall address
+    edit "Critical-SaaS-App"
+        set type fqdn
+        set fqdn "critical-app.meridian.lab"
+        set cache-ttl 30
+    next
+end
+
+---------------------------------
+
+config system sdwan
+    config service
+        edit 2
+            set name "Critical-App-Over-MPLS"
+            set mode manual
+            set dst "Critical-SaaS-App"
+            set priority-members 1
+        next
+    end
+end
+
+---------------------------
+config system dns
+    set primary 192.168.60.11
+    set secondary 8.8.4.4
+end
