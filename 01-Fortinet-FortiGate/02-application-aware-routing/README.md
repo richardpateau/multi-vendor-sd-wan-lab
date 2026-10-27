@@ -171,7 +171,7 @@ end
    <title>Meridian Critical Application</title>
    <h1>Meridian Critical Application</h1>
    <p>SD-WAN traffic steering test successful.</p>
-   ```
+   ``` 
 ![sd-wan](screenshots/wget-successful.png)
 
 ---
@@ -228,29 +228,25 @@ end
 
 | Phase | Artifact / Screenshot | Purpose & Verification |
 | :--- | :--- | :--- |
-| **Phase 1: Baseline** | `application-aware-visio.png` | Network topology displaying HQ FortiGate, underlay links, DNS, and Web server. |
-| **Phase 1: Baseline** | `DNS Server ip a.png` | IP configuration output verifying DNS Server at `192.168.60.11/24`. |
-| **Phase 1: Baseline** | `web server ip a.png` | IP configuration output verifying Python HTTP Server at `192.168.60.10/24`. |
-| **Phase 1: Baseline** | `ISP 1 sho ip int brief.png` | Confirms interfaces on `ISP-1-MPLS` (`10.0.1.1`, `10.0.3.1`) are UP. |
-| **Phase 1: Baseline** | `ISP 2 sh ip int brief .png` | Confirms interfaces on `ISP-2-BB` (`10.0.2.1`, `10.0.0.2`) are UP. |
-| **Phase 1: Baseline** | `ISP 2 hosting DNS server.png` | Shows host lookup resolution configured on ISP-2 underlay. |
-| **Phase 1: Baseline** | `Application aware test DNS server nslookup server itself.png` | Verifies local resolution of `critical-app.meridian.lab` directly on DNS server. |
-| **Phase 2: Configuration** | `fortinate show firewall address SAAS object.png` | Validates FQDN address object `Critical-SaaS-App` with `cache-ttl 30`. |
-| **Phase 2: Configuration** | `Fortinet show system sdwan policy 2.png` | Confirms SD-WAN rule 2 matching FQDN object and member preference. |
-| **Phase 2: Configuration** | `diagnose test application dnsproxy 6.png` | Validates FortiGate DNS proxy resolved `critical-app.meridian.lab` to `192.168.60.11`. |
-| **Phase 2: Configuration** | `diagnose firewall proute list.png` | Verifies dynamic kernel policy route installation (`oif=port2`) matching the FQDN IP. |
-| **Phase 2: Configuration** | `Fortinet diagnose sys sdwan service .png` | Confirms SD-WAN service table state with active selected member. |
-| **Phase 3: Validation** | `NS LOOKUP HQ NODE.png` | Confirms HQ host resolves domain via internal DNS (`192.168.60.11`). |
-| **Phase 3: Validation** | `TRACEROUTE through port 1 successful HQ NODE.png` | Confirms outbound traffic exits `port2` (MPLS next-hop `10.0.1.1`). |
-| **Phase 3: Validation** | `HQ node wget web server successful.png` | End-to-end HTTP payload validation retrieving custom HTML application page. |
-| **Phase 4: Policy Change** | `intentional policy change .png` | Shows CLI modification changing rule 2 member priority to Member 2 (`port3`). |
-| **Phase 4: Policy Change** | `POLICY 2 switching to port 3.png` | Shows SD-WAN service rule 2 updating active egress path to `port3`. |
-| **Phase 4: Policy Change** | `POLICy CHANGE SUCCESSFUL PC is prefering port 3 after changing .png` | Post-change traceroute showing traffic immediately re-routed through `10.0.2.1` (`ISP-B`). |
-
----
-
-## Operational Runbook & SOPs
-* **[sd wan runbook application aware](./sd%20wan%20runbook%20application%20aware)** — Operational guide detailing commands for clearing DNS proxy tables, verifying FQDN TTLs, inspecting `proute` counters, and managing service rule priorities.
+| **Phase 1: Baseline & Topology** | `screenshots/topology.png` | Network topology diagram showing HQ FortiGate, dual ISP underlays, DNS, and Web server. |
+| **Phase 1: Baseline & Topology** | `screenshots/application-aware-visio.png` | Detailed Visio diagram illustrating the application-aware traffic flow and FQDN steering path. |
+| **Phase 1: Baseline & Topology** | `screenshots/dns-server-ip.png` | IP configuration output (`ip a`) verifying Alpine DNS Server at `192.168.60.11/24`. |
+| **Phase 1: Baseline & Topology** | `screenshots/web-server-ip.png` | IP configuration output (`ip a`) verifying Alpine Web Server hosting app at `192.168.60.10/24`. |
+| **Phase 1: Baseline & Topology** | `screenshots/show-ip-int-brief-both-routers.png` | Confirms WAN interfaces on both provider routers (`ISP-1-MPLS` and `ISP-2-BB`) are UP/UP. |
+| **Phase 1: Baseline & Topology** | `screenshots/nslookup-127.png` | Local loopback DNS query on DNS server proving authoritative resolution of `critical-app.meridian.lab`. |
+| **Phase 2: Configuration & Resolution** | `screenshots/show-firewall-address.png` | Confirms FQDN address object `Critical-SaaS-App` configured with `cache-ttl 30`. |
+| **Phase 2: Configuration & Resolution** | `screenshots/fortinet-dns-proxy.png` | FortiGate CLI (`diagnose test application dnsproxy 6`) showing cached resolution to `192.168.60.11`. |
+| **Phase 2: Configuration & Resolution** | `screenshots/config-service-member-1.png` | SD-WAN service configuration showing Rule 2 pinned to Member 1 (`port2` / MPLS). |
+| **Phase 2: Configuration & Resolution** | `screenshots/policy-route.png` | Verifies dynamic policy route (`diagnose firewall proute list`) programmed with `oif=port2`. |
+| **Phase 2: Configuration & Resolution** | `screenshots/sd-wan-service-member-1.png` | Service table (`diagnose sys sdwan service`) verifying Rule 2 active with Member 1 selected. |
+| **Phase 3: Traffic Steering Validation** | `screenshots/ns-lookup-hq.png` | End-host resolution test from HQ server resolving domain via internal DNS (`192.168.60.11`). |
+| **Phase 3: Traffic Steering Validation** | `screenshots/traceroute-through-port-2.png` | Traceroute from HQ server confirming traffic egresses via `port2` (MPLS next-hop `10.0.1.1`). |
+| **Phase 3: Traffic Steering Validation** | `screenshots/wget-successful.png` | Application layer HTTP test retrieving web payload from `192.168.60.10:8080`. |
+| **Phase 4: Policy Change & Rerouting** | `screenshots/intentional-policy-change.png` | Administrative CLI configuration updating Rule 2 priority members from Member 1 to Member 2. |
+| **Phase 4: Policy Change & Rerouting** | `screenshots/config-service-member-2.png` | SD-WAN service configuration verifying Rule 2 updated to `priority-members 2`. |
+| **Phase 4: Policy Change & Rerouting** | `screenshots/sd-wan-service-member-2.png` | Service table confirming Rule 2 dynamically shifted and promoted Member 2 (`port3`) to active. |
+| **Phase 4: Policy Change & Rerouting** | `screenshots/traceroute-port-3.png` | Traceroute from HQ server proving traffic immediately rerouted through `10.0.2.1` (`ISP-B`). |
+| **Phase 4: Policy Change & Rerouting** | `screenshots/traceroute-before-after.png` | Side-by-side traceroute comparison demonstrating deterministic steering before and after the change. |
 
 ---
 
@@ -261,5 +257,5 @@ end
 
 ---
 
-### ➡️ Next Module
-* ⚖️ **[Task 3: Active/Active Load Balancing (Round-Robin)](../03-active-active-load-balancing/)** — Distributing outbound sessions across both WAN links simultaneously to maximize aggregate bandwidth utilization.
+### Next Module
+* **[Task 3: Active/Active Load Balancing (Round-Robin)](../03-active-active-load-balancing/)** — Distributing outbound sessions across both WAN links simultaneously to maximize aggregate bandwidth utilization.
