@@ -25,3 +25,4 @@ venv/
 *.qcow2
 *.vdi
 *.ova
+*.pcapng
