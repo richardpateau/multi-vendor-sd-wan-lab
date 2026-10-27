@@ -29,7 +29,7 @@ When the primary MPLS link (`ISP-A` / `port2`) experiences a routing blackhole o
 
 ![sd-wan](screenshots/show-system-interface-hq.png)
 
-**Branch-Fotigate: show system interface**
+**Branch-Fortigate: show system interface**
 
 ![topology](screenshots/show-system-interface-branch.png)
 
