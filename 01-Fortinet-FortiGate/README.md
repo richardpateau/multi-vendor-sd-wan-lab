@@ -1,286 +1,117 @@
-# Policy 1: Priority-Based Performance Failover (Active / Standby)
+# Module 1: Fortinet FortiGate SD-WAN
 
-## Executive Summary
-This module validates Fortinet FortiOS SD-WAN **intent-based, performance-driven link steering**. Rather than relying on layer-1/layer-2 physical link state (carrier detect), FortiGate monitors real-time path quality and next-hop reachability over the underlay WAN links.
+An end-to-end SD-WAN fabric on FortiGate-VMs, going beyond basic connectivity to **intent-based routing, traffic shaping, and encrypted overlays**. Every change was verified with CLI diagnostics and packet captures, and tested by deliberately breaking the underlay.
 
-When the primary MPLS link (`ISP-A` / `port2`) experiences a routing blackhole or upstream failure (simulated via an ingress ACL blocking health probes on the ISP router), the FortiGate detects the failed health-check and automatically steers branch-bound traffic to the secondary Broadband link (`ISP-B` / `port3`) with zero manual intervention and sub-second convergence.
-
-**Live Execution: Please enlarge for clearer video**
+**Headline result:** when ISP-A was failed on purpose, critical traffic moved to ISP-B with only 1-2 dropped pings before recovery.
 
 ---
 
-## Lab Architecture & Addressing
+## Lab Topology
 
-![sd-wan](screenshots/topology.png)
+![Topology](topology.png)
 
-### Underlay & Subnet Matrix
-| Device / Role | Interface | IP Address | Subnet Mask | Next-Hop / Gateway |
-| :--- | :--- | :--- | :--- | :--- |
-| **HQ FortiGate** | `port1` (LAN) | `192.168.1.1` | `255.255.255.0` | — |
-| **HQ FortiGate** | `port2` (WAN1 - ISP-A MPLS) | `10.0.1.2` | `255.255.255.252` | `10.0.1.1` |
-| **HQ FortiGate** | `port3` (WAN2 - ISP-B Broadband) | `10.0.2.2` | `255.255.255.252` | `10.0.2.1` |
-| **Branch FortiGate** | `port1` (LAN) | `192.168.2.1` | `255.255.255.0` | — |
-| **Branch FortiGate** | `port2` (WAN1) | `10.0.1.6` | `255.255.255.252` | `10.0.1.5` |
-| **Branch FortiGate** | `port3` (WAN2) | `10.0.2.6` | `255.255.255.252` | `10.0.2.5` |
-| **HQ Server** | `eth0` | `192.168.1.10` | `255.255.255.0` | `192.168.1.1` |
-| **Branch Client** | `eth0` | `192.168.2.10` | `255.255.255.0` | `192.168.2.1` |
-
-**HQ-Fortigate: show system interface**
-
-![sd-wan](screenshots/show-system-interface-hq.png)
-
-**Branch-Fotigate: show system interface**
-
-![topology](screenshots/show-system-interface-branch.png)
+| Component | Role |
+|-----------|------|
+| HQ FortiGate-VM | Port1 LAN, Port2 MPLS/ISP-A, Port3 Broadband/ISP-B |
+| Branch FortiGate-VM | Port1 LAN, Port2 MPLS/ISP-A, Port3 Broadband/ISP-B |
+| Cisco vIOS routers | Two independent ISP backbones (underlay) |
+| Alpine Linux hosts | iPerf3 server at HQ; TCPDump and client at Branch |
 
 ---
 
-## Configuration & Engineering Logic
+## Results Summary
 
-### 1. Dedicated Underlay Health Monitors
-To prevent false-positive link fails caused by transient Internet-wide outages, dedicated link-level monitors probe the **immediate provider next-hop** of each physical interface:
-* **`ISP_A_Monitor`**: Sends ICMP probes out `port2` targeting `10.0.1.1`.
-* **`ISP_B_Monitor`**: Sends ICMP probes out `port3` targeting `10.0.2.1`.
-
-```fortios
-config system sdwan
-    config health-check
-        edit "ISP_A_Monitor"
-            set server "10.0.1.1"
-            set protocol ping
-            set members 1
-            set interval 500
-            set failtime 3
-            set recoverytime 3
-        next
-        edit "ISP_B_Monitor"
-            set server "10.0.2.1"
-            set protocol ping
-            set members 2
-            set interval 500
-            set failtime 3
-            set recoverytime 3
-        next
-    end
-end
-```
-![sd-wan](screenshots/health-check-show.png)
-
-### 2. SD-WAN Service Rule (Priority Steering)
-* **Steering Strategy:** `mode priority` (Active/Standby).
-* **Preference Hierarchy:** Member 1 (`port2` - MPLS) > Member 2 (`port3` - Broadband).
-* **Failover Logic:** As long as `ISP_A_Monitor` passes its health-check, all traffic to `Branch-Subnet` (`192.168.2.0/24`) is pinned to `port2`. If `ISP_A_Monitor` fails 3 consecutive intervals, the service rule immediately selects Member 2 (`port3`).
-
-```fortios
-config system sdwan
-    config service
-        edit 1
-            set name "HQ-to-Branch"
-            set mode priority
-            set dst "Branch-Subnet"
-            set src "all"
-            set health-check "ISP_A_Monitor" "ISP_B_Monitor"
-            set priority-members 1 2
-            set status enable
-            set default enable
-        next
-    end
-end
-```
-![sd-wan](screenshots/isp-health-check-service.png)
-
-### 3. Static Routing Integration
-```fortios
-config router static
-    edit 1
-        set distance 1
-        set sdwan-zone "virtual-wan-link"
-    next
-    edit 2
-        set dst 192.168.2.0 255.255.255.0
-        set distance 1
-        set sdwan-zone "virtual-wan-link"
-    next
-end
-```
-*Edit 1 is the default route* 
-
-![sd-wan](screenshots/config-router-static.png)
+| # | Scenario | Outcome | Folder |
+|---|----------|---------|--------|
+| 1 | SLA-based failover (active/standby) | 1-2 packets lost on failure, then immediate recovery | [Policy 1](Policy-1-SLA-Failover/) |
+| 2 | Application-aware routing (FQDN) | SaaS traffic steered by domain name; path change confirmed after policy edit | [Policy 2](Policy-2-Application-Aware/) |
+| 3 | Active/active load balancing | Sessions egress both links simultaneously (PCAP on each port) | [Policy 3](Policy-3-Load-Balancing/) |
+| 4 | Traffic shaping and QoS | Bulk transfer held to a hard 2 Mbps cap | [Policy 4](Policy-4-Traffic-Shaping-QoS/) |
+| 5 | IPsec overlay on SD-WAN zone | ESP-encrypted traffic; tunnel stays up through WAN failover | [Policy 5](Policy-5-IPsec-Overlay/) |
 
 ---
 
-## Test Execution & Verification 
+## Task Details
 
-### Phase 1: Baseline Verification (Primary Path Healthy)
-**Objective:** Confirm both underlay links are passing health checks and outbound traffic exits through `port2` (ISP-A MPLS).
+### Task 1: SLA-Based Performance Failover
 
-1. **Verify SD-WAN Health-Check Quality:**
-   ```text
-   FortiGate-VM64-KVM # diagnose sys sdwan health-check
-   Health Check(ISP_A_Monitor):
-   Seq(1 port2): state(alive), packet-loss(0.000%) latency(8.663), jitter(2.876)
-   Health Check(ISP_B_Monitor):
-   Seq(2 port3): state(alive), packet-loss(0.000%) latency(10.048), jitter(1.689)
-   ```
-![sd-wan](screenshots/diagnose-health-check-baseline.png)
+**Objective:** Detect a degraded link and move critical traffic automatically.
 
-2. **Verify Active Member Steering:**
-   ```text
-   FortiGate-VM64-KVM # diagnose sys sdwan member
-   Member(1): interface: port2, flags=0x0 , gateway: 10.0.1.1, priority: 1 1024, weight: 0
-   Member(2): interface: port3, flags=0x0 , gateway: 10.0.2.1, priority: 1 1024, weight: 0
-   ```
-![sd-wan](screenshots/diagnose-sd-wan-member-baseline.png)
+**Approach:** Each WAN link has its own ICMP health check pointed at that link's **next-hop gateway** (`10.0.1.1` for ISP-A, `10.0.2.1` for ISP-B), not a public IP. This gives accurate per-link state. Failure was injected with an ACL on ISP-A while the interface stayed up, so only the SLA check could detect it.
 
-3. **Verify Baseline Traceroute (HQ Server -> Branch Client):**
-   ```bash
-   localhost:~# traceroute 192.168.2.10
-   traceroute to 192.168.2.10 (192.168.2.10), 30 hops max, 46 byte packets
-    1  192.168.1.1 (192.168.1.1)    2.863 ms
-    2  10.0.1.1    (10.0.1.1)      12.805 ms   <-- Egressing via ISP-A (MPLS)
-    3  10.0.1.6    (10.0.1.6)      15.393 ms   <-- Branch WAN1 Interface
-    4  192.168.2.10 (192.168.2.10) 14.918 ms
-   ```
-![sd-wan](screenshots/traceroute-baseline.png)
+**Evidence**
+- Baseline: `TESTING POLICY 1 get diagnose sys ssdwan member baseline.png`
+- Failure detection: `diagnose sys sdwan health-check during failure.png`
+- Continuous ping showing 1-2 lost packets: `POLICY 1 continuours ping.png`
+- Traceroute before and during failure, plus recovery screenshots
+- Packet-level and video proof: `sd-wan-test-1.pcap`, `sd-wan-test-2026-10-26_02.06.16.mp4`
 
+### Task 2: Application-Aware Routing (FQDN)
 
-4. **SD-WAN Service 1 Baseline:**
-   ```bash
-   Service(1): Address Mode(IPV4) flags=0x240 use-shortcut-sla
- Tie break: cfg
-  Gen(209), TOS(0x0/0x0), Protocol(0: 1->65535), Mode(priority), link-cost-factor(latency), link-cost-threshold(10), heath-check(ISP_A_Monitor ISP_B_Monitor)
-  Members(2): 
-    1: Seq_num(1 port2), alive, latency: 9.259, selected
-    2: Seq_num(2 port3), alive, latency: 10.149, selected
-  Src address(1): 
-	0.0.0.0-255.255.255.255
+**Objective:** Steer critical SaaS traffic by domain name instead of static IPs.
 
-  Dst address(1): 
-	192.168.2.0-192.168.2.255
-   ```
-![sd-wan](screenshots/diagnose-service-1.png)
+**Approach:** An FQDN address object feeds an SD-WAN rule. A strict `cache-ttl` makes the FortiGate pick up DNS changes without manual intervention. An intentional policy change moved traffic from Port2 to Port3 to confirm the rule is what controls the path.
 
----
+**Evidence**
+- FQDN object: `fortinate show firewall address SAAS object.png`
+- DNS resolution: `Application aware test DNS server nslookup server itself.png`, `NS LOOKUP HQ NODE.png`
+- SD-WAN rule: `Fortinet show system sdwan policy 2.png`
+- Path change: `POLICY 2 switching to port 3.png`, `POLICy CHANGE SUCCESSFUL PC is prefering port 3 after changing .png`
 
-### Phase 2: Simulating Failure (Upstream ACL)
-**Objective:** Simulate an underlay ISP failure without physical interface down-state by denying FortiGate probe packets on `ISP-1-MPLS`.
+### Task 3: Active/Active Load Balancing
 
-```cisco
-ISP-1-MPLS(config)# ip access-list extended BLOCK-SDWAN-PROBE
-ISP-1-MPLS(config-ext-nacl)# 10 deny icmp host 10.0.1.2 host 10.0.1.1 echo
-ISP-1-MPLS(config-ext-nacl)# 20 permit ip any any
-ISP-1-MPLS(config-ext-nacl)# exit
-ISP-1-MPLS(config)# interface FastEthernet0/0
-ISP-1-MPLS(config-if)# ip access-group BLOCK-SDWAN-PROBE in
-```
-![sd-wan](screenshots/isp-a-intentional-failure-acl.png)
+**Objective:** Use both WAN links at once to raise aggregate bandwidth.
 
-* **Physical State Check:** `FastEthernet0/0` stays **UP / UP**, proving traditional static routing with interface-tracking would fail to detect this failure.
+**Approach:** Three configurations were tested: source/destination-IP hashing with a single stream, the same with two streams, and round-robin. With hashing, a single flow always lands on one link, so a second client IP was needed to see both links in use. Round-robin spreads sessions regardless.
 
-![sd-wan](screenshots/isp-a-port-remains-up.png)
+> Note: in `mode auto`, listing `priority-members` produced round-robin distribution rather than strict failover.
 
-* **SD-WAN Service Re-Evaluation:**
-  ```text
-  FortiGate-VM64-KVM # diagnose sys sdwan service
-  Service(1): Address Mode(IPV4) flags=0x240 use-shortcut-sla
-  Tie break: cfg
-  Gen(62), Mode(priority), health-check(ISP_A_Monitor ISP_B_Monitor)
-  Members(2):
-    1: Seq_num(2 port3), alive, latency: 8.960, selected  <-- PROMOTED TO ACTIVE
-    2: Seq_num(1 port2), dead                             <-- FLAGGED DEAD
-  ```
-  ![sd-wan](screenshots/diagnose-sd-wan-service-during-failure.png)
-  
-* **SD-WAN Health Check Re-Evaluation:**
- ```text
-FortiGate-VM64-KVM # diagnose sys sdwan health-check
-Health Check(ISP_A_Monitor):
-Seq(1 port2): state(dead), packet-loss(43.000%) sla_map=0x0
-Health Check(ISP_B_Monitor):
-Seq(2 port3): state(alive), packet-loss(0.000%) latency(8.904), jitter(1.932), mos(4.398), bandwidth-up(9999998), bandwidth-dw(9999999), bandwidth-bi(19999997) sla_map=0x0
-  ```
- ![sd-wan](screenshots/health-check-during-failure.png)
-  
----
+**Evidence**
+- Configuration: `ROUND ROBIN TEST SINGLE STREAM CONFIGURATION ON FORTINET.png`
+- Hash-based tests: `single-stream-test-port-2/3.pcapng`, `double-stream-test-port-2/3.pcapng`
+- Round-robin egress on both ports: `round-robin-test-port-2.pcapng`, `round-robin-test-port-3.pcapng`
+- Video: `sd-wan-test-round-robin-single-stream-2026-10-26_09.40.45.mp4`
 
-### Phase 3: Traffic Failover & Data Plane Continuity
-**Objective:** Confirm active data plane re-route and packet loss during failover.
+### Task 4: Traffic Shaping and QoS
 
-1. **Traceroute via Backup Path (`ISP-B` Broadband):**
-   ```bash
-   localhost:~# traceroute 192.168.2.10
-   traceroute to 192.168.2.10 (192.168.2.10), 30 hops max, 46 byte packets
-    1  192.168.1.1 (192.168.1.1)    2.628 ms
-    2  10.0.2.1    (10.0.2.1)      17.510 ms   <-- Shifted to ISP-B (Broadband)
-    3  10.0.2.6    (10.0.2.6)      24.376 ms   <-- Branch WAN2 Interface
-    4  192.168.2.10 (192.168.2.10) 24.905 ms
-   ```
-![sd-wan](screenshots/traceroute-during-failure.png)
+**Objective:** Stop bulk transfers from starving critical applications.
 
-![topology](screenshots/traceroute-before-after.png)
+**Approach:** Path selection (`config system sdwan`) and bandwidth enforcement (`config firewall shaping-policy`) are kept as separate objects, so each can be changed independently.
 
-2. **Continuous ICMP Stream Analysis:**
-   Continuous ICMP pings remained uninterrupted across the transition with sub-second failover (0% packet drop observed once next-hop reconverged).
+**Evidence**
+- Shaper and policy config: `show firewall shaper traffic-shaper .png`, `show firewall shaping-policy.png`
+- Wireshark IO graph showing the cap: `wirehsark io shows shaping being successful.png`
+- Video: `qos-shaping-test-2026-10-27_00.41.33.mp4`
 
-![sd-wan](screenshots/continuous-ping.png)
+### Task 5: IPsec Overlay over the SD-WAN Zone
+
+**Objective:** Encrypt branch-to-branch traffic while keeping SD-WAN path selection and failover.
+
+**Approach:** The IPsec Phase 1 interface is bound to the `virtual-wan-link` zone rather than a single physical port. ESP packets in the capture show the traffic is encrypted, and the tunnel stayed `UP` when a physical WAN link failed.
+
+**Evidence**
+- Tunnel state and encrypted counters: `diagnose vpn tunnel list 1st VPN encrypted packets going up after ping.png`
+- IKE/IPsec status on both ends: `diagnose vpn ike gateway list HQ.png` / `BRANCH.png`, `diagnose vpn ipsec status HQ .png` / `BRANCH.png`
+- ESP proof: `icmp and esp trailing proof of encryption.png`, `ESP PCAPs found overview.png`
+- Routing: `get router info routing-table all HQ.png`, `get router info routing-table all Branch .png`
+- Video: `sd-wan-esp-pcap-2026-10-27_04.58.36.mp4`
 
 ---
 
-### Phase 4: Recovery (Restoration of Preferred Path)
-**Objective:** Remove the ACL blackhole on `ISP-1-MPLS` and observe automatic failback.
+## Troubleshooting and Lessons Learned
 
-1. **Remove ACL on ISP Router:**
-   ```cisco
-   ISP-1-MPLS(config)# interface FastEthernet0/0
-   ISP-1-MPLS(config-if)# no ip access-group BLOCK-SDWAN-PROBE in
-   ```
-   ![sd-wan](screenshots/isp-a-removing-acl.png)
-
-2. **SD-WAN Service Re-selection:**
-   ```text
-   FortiGate-VM64-KVM # diagnose sys sdwan service
-   Service(1): Address Mode(IPV4) flags=0x240 use-shortcut-sla
-   Tie break: cfg
-   Gen(63), Mode(priority), health-check(ISP_A_Monitor ISP_B_Monitor)
-   Members(2):
-     1: Seq_num(1 port2), alive, latency: 10.055, selected  <-- RESTORED PRIMARY
-     2: Seq_num(2 port3), alive, latency: 9.521, selected
-   ```
-   *Traffic immediately preempts back to Priority 1 (`port2`) cleanly.*
-
-![sd-wan](screenshots/recovery-diagnose-sd-wan-service.png)
+| Problem | Cause | Fix |
+|---------|-------|-----|
+| Traffic stayed on one link after switching from active/standby to active/active | Existing sessions kept their old path | `diagnose sys session clear` so flows are re-evaluated against the new hash |
+| iPerf3 dropped its control socket on high-bandwidth tests | Virtual switch MTU/CPU limits in the lab | Used continuous `ping` and rate-limited iPerf3 (`-b 1M`) for clean captures |
+| Health states were inaccurate when both links probed 8.8.8.8 | A shared public target does not reflect each link's own state | Probe each ISP's next-hop gateway |
 
 ---
 
-## Evidence Index
+## Runbooks
 
-| Phase | Artifact / Screenshot | Purpose & Verification |
-| :--- | :--- | :--- |
-| **Phase 1: Baseline** | `show system sdwan baseline.png` | Confirms SD-WAN zone configuration, member mappings, and probe timers. |
-| **Phase 1: Baseline** | `show router static baseline.png` | Validates default route bound to the `virtual-wan-link` interface. |
-| **Phase 1: Baseline** | `diagnose sys sdwan member baseline.png` | Confirms initial member priority assignments (`port2` vs `port3`). |
-| **Phase 1: Baseline** | `diagnose sys sdwan health-check baseline.png` | Baseline latency, jitter, and 0% loss to both provider next-hops. |
-| **Phase 1: Baseline** | `traceroute baseline.png` | Baseline validation that egress traffic exits `10.0.1.1` (MPLS). |
-| **Phase 2: Link Failure** | `ISP-A ACL block.png` | Cisco ACL configuration dropping ICMP echo requests from `10.0.1.2`. |
-| **Phase 2: Link Failure** | `diagnose sys sdwan health-check during failure.png` | Detects `ISP_A_Monitor` dead state while physical interface remains up. |
-| **Phase 2: Link Failure** | `diagnose sys sdwan service during failure.png` | Verifies dynamic promotion of `port3` as the only active selected member. |
-| **Phase 3: Impact** | `traceroute during failover.png` | Proves live data plane reroute through `10.0.2.1` (`ISP-B`). |
-| **Phase 3: Impact** | `continuous ping failover.png` | Evidence of business continuity and zero session breakdown. |
-| **Phase 4: Recovery** | `ISP-A ACL removal.png` | Administrative removal of the drop ACL on `ISP-1-MPLS`. |
-| **Phase 4: Recovery** | `diagnose sys sdwan service recovered.png` | Automatic preemption back to `port2` (MPLS Priority 1). |
+Each policy folder includes a runbook. The main one is the [Policy 1 runbook](Policy-1-SLA-Failover/fortinet-runbook), an ITIL-aligned SOP covering SD-WAN troubleshooting, health-check validation, and maintenance windows.
 
 ---
 
-## Operational Runbook & SOPs
-* **[Operational Runbook](./fortinet-runbook.txt)** — Contains step-by-step troubleshooting workflows, packet sniffer commands (`diagnose sniffer packet any 'icmp' 4 0 l`), session table verification, and clean rollback scripts.
-
----
-
-## Business Value Delivered
-* **Autonomous High Availability:** Eliminates SLA penalties by automatically rerouting branch traffic around silent upstream ISP brownouts without operational intervention.
-* **Carrier Cost Optimization:** Enables secure, cost-effective broadband links to serve as hot-standbys for expensive MPLS circuits.
-* **Preserved User Experience:** Convergence occurs fast enough that real-time TCP applications (RDP, ERP, CRM) survive transient WAN failures without reconnecting.
-
----
-*➡️ [Return to Fortinet Module Overview](../README.md)*
-```
+[Back to repo overview](../README.md) · [Next: Module 2, Cisco Catalyst SD-WAN](../02-Cisco-Catalyst-SDWAN/)

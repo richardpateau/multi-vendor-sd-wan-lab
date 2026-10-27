@@ -210,19 +210,19 @@ Seq(2 port3): state(alive), packet-loss(0.000%) latency(8.904), jitter(1.932), m
 ### Phase 3: Traffic Failover & Data Plane Continuity
 **Objective:** Confirm active data plane re-route and packet loss during failover.
 
-1. **Traceroute via Backup Path (`ISP-B` Broadband):**
+1. **Traceroute via Backup Path (ISP-B Broadband):**
    ```bash
    localhost:~# traceroute 192.168.2.10
    traceroute to 192.168.2.10 (192.168.2.10), 30 hops max, 46 byte packets
     1  192.168.1.1 (192.168.1.1)    2.628 ms
-    2  10.0.2.1    (10.0.2.1)      17.510 ms   <-- Shifted to ISP-B (Broadband)
-    3  10.0.2.6    (10.0.2.6)      24.376 ms   <-- Branch WAN2 Interface
+    2  10.0.2.1    (10.0.2.1)      17.510 ms   Shifted to ISP-B (Broadband)
+    3  10.0.2.6    (10.0.2.6)      24.376 ms   Branch WAN2 Interface
     4  192.168.2.10 (192.168.2.10) 24.905 ms
    ```
 ![sd-wan](screenshots/traceroute-during-failure.png)
 
 ![topology](screenshots/traceroute-before-after.png)
-
+	
 2. **Continuous ICMP Stream Analysis:**
    Continuous ICMP pings remained uninterrupted across the transition with sub-second failover (0% packet drop observed once next-hop reconverged).
 
@@ -284,10 +284,6 @@ Here is the updated **Evidence Index** mapped to the exact file names from your 
 | **Phase 4: Recovery** | `recovery-diagnose-sd-wan-service.png` | Shows automatic preemption back to Member 1 (`port2` - Priority 1) once health recovers. |
 | **Phase 4: Recovery** | `diagnose-service-1.png` | Detailed post-recovery diagnostics confirming stable service rule operations. |
 
----
-
-## Operational Runbook & SOPs
-* **[Operational Runbook](./fortinet-runbook.txt)** — Contains step-by-step troubleshooting workflows, packet sniffer commands (`diagnose sniffer packet any 'icmp' 4 0 l`), session table verification, and clean rollback scripts.
 
 ---
 
