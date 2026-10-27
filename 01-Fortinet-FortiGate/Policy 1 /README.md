@@ -137,26 +137,30 @@ end
    localhost:~# traceroute 192.168.2.10
    traceroute to 192.168.2.10 (192.168.2.10), 30 hops max, 46 byte packets
     1  192.168.1.1 (192.168.1.1)    2.863 ms
-    2  10.0.1.1    (10.0.1.1)      12.805 ms   <-- Egressing via ISP-A (MPLS)
-    3  10.0.1.6    (10.0.1.6)      15.393 ms   <-- Branch WAN1 Interface
+    2  10.0.1.1    (10.0.1.1)      12.805 ms   ISP-A (MPLS)
+    3  10.0.1.6    (10.0.1.6)      15.393 ms   
     4  192.168.2.10 (192.168.2.10) 14.918 ms
    ```
 ![sd-wan](screenshots/traceroute-baseline.png)
 
 
 4. **SD-WAN Service 1 Baseline:**
-   ```bash
-   Service(1): Address Mode(IPV4) flags=0x240 use-shortcut-sla
- Tie break: cfg
-  Gen(209), TOS(0x0/0x0), Protocol(0: 1->65535), Mode(priority), link-cost-factor(latency), link-cost-threshold(10), heath-check(ISP_A_Monitor ISP_B_Monitor)
-  Members(2): 
-    1: Seq_num(1 port2), alive, latency: 9.259, selected
-    2: Seq_num(2 port3), alive, latency: 10.149, selected
-  Src address(1): 
-	0.0.0.0-255.255.255.255
+   ```text
+   FortiGate-VM64-KVM # diagnose sys sdwan service 1
 
-  Dst address(1): 
-	192.168.2.0-192.168.2.255
+   Service(1): Address Mode(IPV4) flags=0x240 use-shortcut-sla
+   Tie break: cfg
+   Gen(209), TOS(0x0/0x0), Protocol(0: 1->65535), Mode(priority), link-cost-factor(latency), link-cost-threshold(10), heath-check(ISP_A_Monitor ISP_B_Monitor)
+   Members(2):
+     1: Seq_num(1 port2), alive, latency: 9.259, selected
+     2: Seq_num(2 port3), alive, latency: 10.149, selected
+   Src address(1):
+           0.0.0.0-255.255.255.255
+
+   Dst address(1):
+           192.168.2.0-192.168.2.255
+
+   FortiGate-VM64-KVM #
    ```
 ![sd-wan](screenshots/diagnose-service-1.png)
 
