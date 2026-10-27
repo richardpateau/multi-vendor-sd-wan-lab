@@ -1,10 +1,3 @@
-Here is the cleaned, professionally formatted, and technically accurate **`README.md`** for your GitHub repository or documentation portfolio. 
-
-All duplicate sections, typos (`fialure`, `baselin`, `ssdwan`), and CLI discrepancies (e.g., clarifying `mode priority` vs. `mode sla`) have been corrected to match your exact lab topology and terminal screenshots.
-
----
-
-```markdown
 # Policy 1: Priority-Based Performance Failover (Active / Standby)
 
 ## Executive Summary
