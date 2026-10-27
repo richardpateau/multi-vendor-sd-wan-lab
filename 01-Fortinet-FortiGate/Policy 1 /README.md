@@ -130,7 +130,7 @@ end
    Member(1): interface: port2, flags=0x0 , gateway: 10.0.1.1, priority: 1 1024, weight: 0
    Member(2): interface: port3, flags=0x0 , gateway: 10.0.2.1, priority: 1 1024, weight: 0
    ```
-![sd-wan](screenshots/diagnose-sd-wan-member-baseline.png)
+![sd-wan](screenshots/diagnose-sd-wan-members.png)
 
 3. **Verify Baseline Traceroute (HQ Server -> Branch Client):**
    ```bash
@@ -252,22 +252,33 @@ Seq(2 port3): state(alive), packet-loss(0.000%) latency(8.904), jitter(1.932), m
 
 ---
 
+Here is the updated **Evidence Index** mapped to the exact file names from your directory tree:
+
+---
+
 ## Evidence Index
 
 | Phase | Artifact / Screenshot | Purpose & Verification |
 | :--- | :--- | :--- |
-| **Phase 1: Baseline** | `show system sdwan baseline.png` | Confirms SD-WAN zone configuration, member mappings, and probe timers. |
-| **Phase 1: Baseline** | `show router static baseline.png` | Validates default route bound to the `virtual-wan-link` interface. |
-| **Phase 1: Baseline** | `diagnose sys sdwan member baseline.png` | Confirms initial member priority assignments (`port2` vs `port3`). |
-| **Phase 1: Baseline** | `diagnose sys sdwan health-check baseline.png` | Baseline latency, jitter, and 0% loss to both provider next-hops. |
-| **Phase 1: Baseline** | `traceroute baseline.png` | Baseline validation that egress traffic exits `10.0.1.1` (MPLS). |
-| **Phase 2: Link Failure** | `ISP-A ACL block.png` | Cisco ACL configuration dropping ICMP echo requests from `10.0.1.2`. |
-| **Phase 2: Link Failure** | `diagnose sys sdwan health-check during failure.png` | Detects `ISP_A_Monitor` dead state while physical interface remains up. |
-| **Phase 2: Link Failure** | `diagnose sys sdwan service during failure.png` | Verifies dynamic promotion of `port3` as the only active selected member. |
-| **Phase 3: Impact** | `traceroute during failover.png` | Proves live data plane reroute through `10.0.2.1` (`ISP-B`). |
-| **Phase 3: Impact** | `continuous ping failover.png` | Evidence of business continuity and zero session breakdown. |
-| **Phase 4: Recovery** | `ISP-A ACL removal.png` | Administrative removal of the drop ACL on `ISP-1-MPLS`. |
-| **Phase 4: Recovery** | `diagnose sys sdwan service recovered.png` | Automatic preemption back to `port2` (MPLS Priority 1). |
+| **Phase 1: Baseline** | `show-system-sd-wan.png` | Confirms SD-WAN zone configuration, member mappings, and probe timers. |
+| **Phase 1: Baseline** | `show-system-interface-hq.png` | Confirms physical interface IP addressing, VDOM, and management access on HQ FortiGate. |
+| **Phase 1: Baseline** | `show-system-interface-branch.png` | Confirms WAN/LAN physical interface IP addressing on Branch FortiGate. |
+| **Phase 1: Baseline** | `config-router-static.png` | Validates static route configuration bound to the `virtual-wan-link` SD-WAN zone. |
+| **Phase 1: Baseline** | `health-check-show.png` | Displays CLI definition for underlay monitors (`ISP_A_Monitor` and `ISP_B_Monitor`). |
+| **Phase 1: Baseline** | `isp-health-check-service.png` | Confirms SD-WAN service rule 1 (`HQ-to-Branch`) in `mode priority` with members 1 & 2. |
+| **Phase 1: Baseline** | `diagnose-sd-wan-member-baseline.png` | Validates initial member states, gateways (`10.0.1.1` / `10.0.2.1`), and priority metrics. |
+| **Phase 1: Baseline** | `diagnose-health-check-baseline.png` | Confirms healthy SLA metrics (0% packet loss, baseline latency/jitter) across both links. |
+| **Phase 1: Baseline** | `traceroute-baseline.png` | Proves baseline egress traffic routes via `10.0.1.1` (`ISP-A` MPLS). |
+| **Phase 2: Link Failure** | `isp-a-intentional-failure-acl.png` | Displays Cisco ACL `BLOCK-SDWAN-PROBE` applied inbound on `ISP-1-MPLS` (`f0/0`). |
+| **Phase 2: Link Failure** | `isp-a-port-remains-up.png` | Proves physical link remains `up/up`, proving carrier-detect cannot catch silent brownouts. |
+| **Phase 2: Link Failure** | `health-check-during-failure.png` | Shows FortiGate detecting probe loss and transitioning `ISP_A_Monitor` to `state(dead)`. |
+| **Phase 2: Link Failure** | `diagnose-sd-wan-service-during-failure.png` | Confirms rule re-evaluation: `port2` marked dead and `port3` promoted to active. |
+| **Phase 3: Impact** | `traceroute-during-failure.png` | Proves active data plane reroute through `10.0.2.1` (`ISP-B` Broadband). |
+| **Phase 3: Impact** | `continuous-ping.png` | Proves continuous packet flow and business continuity during failover. |
+| **Phase 3: Impact** | `sd-wan-test.mp4` | Live screen capture of ACL failure injection, rapid steering, and sub-second failover. |
+| **Phase 4: Recovery** | `isp-a-removing-acl.png` | Confirms removal of blocking ACL (`no ip access-group`) on provider router. |
+| **Phase 4: Recovery** | `recovery-diagnose-sd-wan-service.png` | Shows automatic preemption back to Member 1 (`port2` - Priority 1) once health recovers. |
+| **Phase 4: Recovery** | `diagnose-service-1.png` | Detailed post-recovery diagnostics confirming stable service rule operations. |
 
 ---
 
