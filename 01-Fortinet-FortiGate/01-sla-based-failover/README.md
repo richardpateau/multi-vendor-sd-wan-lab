@@ -13,7 +13,7 @@ When the primary MPLS link (`ISP-A` / `port2`) experiences a routing blackhole o
 
 ![sd-wan](screenshots/topology.png)
 
-### Underlay & Subnet Matrix
+### Underlay & Subnet 
 | Device / Role | Interface | IP Address | Subnet Mask | Next-Hop / Gateway |
 | :--- | :--- | :--- | :--- | :--- |
 | **HQ FortiGate** | `port1` (LAN) | `192.168.1.1` | `255.255.255.0` | — |
@@ -32,6 +32,12 @@ When the primary MPLS link (`ISP-A` / `port2`) experiences a routing blackhole o
 **Branch-Fortigate: show system interface**
 
 ![topology](screenshots/show-system-interface-branch.png)
+
+### SD-WAN Interfaces 
+
+![topology](screenshots/sd-wan-members-visio.png)
+
+![topology](screenshots/show-system-sd-wan.png)
 
 ---
 
