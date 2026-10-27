@@ -90,9 +90,9 @@ end
    Name:      critical-app.meridian.lab
    Address:   192.168.60.11
    ```
-![sd-wan](screenshots/nslookup-127.png)
+   ![sd-wan](screenshots/nslookup-127.png)
 
-2. **FortiGate DNS Proxy Cache Inspection (`dnsproxy 6`):**
+2. **FortiGate DNS Proxy Cache Inspection (dnsproxy 6):**
    ```text
    FortiGate-VM64-KVM # diagnose test application dnsproxy 6
    worker idx: 0
@@ -104,7 +104,7 @@ end
    ```
 ![sd-wan](screenshots/fortinet-dns-proxy.png)
 
-3. **Dynamic Policy Route (`proute`) Programming:**
+3. **Dynamic Policy Route (proute) Programming:**
    FortiOS translates the resolved FQDN into a dynamic policy route bound to outgoing interface `port2`:
    ```text
    FortiGate-VM64-KVM # diagnose firewall proute list
@@ -132,7 +132,7 @@ end
 
    FortiGate-VM64-KVM #
    ```
-   ![sd-wan](screenshots/sd-wan-service-member-1.png)
+![sd-wan](screenshots/sd-wan-service-member-1.png)
 
 ---
 
@@ -159,7 +159,7 @@ end
    ```
 ![sd-wan](screenshots/traceroute-through-port-2.png)
 
-3. **Application Layer HTTP Request (`wget`):**
+3. **Application Layer HTTP Request (wget):**
    ```text
    localhost:~# wget -S -O - http://192.168.60.10:8080/
    Connecting to 192.168.60.10:8080 (192.168.60.10:8080)
@@ -212,11 +212,11 @@ end
     4  10.0.3.2 (10.0.3.2)       48.028 ms 32.440 ms 25.807 ms
     5  critical-app.meridian.lab (192.168.60.11) 43.483 ms 36.554 ms 37.804 ms
    ```
-![sd-wan](screenshots/traceroute-member-2.png)
+![sd-wan](screenshots/traceroute-port-3.png)
 
 **ISP: show ip int brief**
 
-![sd-wan](screenshots/show-ip-int-brief.png)
+![sd-wan](screenshots/show-ip-int-brief-both-routers.png)
 
 **Traceroute**
 
