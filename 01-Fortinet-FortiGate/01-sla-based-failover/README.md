@@ -7,6 +7,8 @@ When the primary MPLS link (`ISP-A` / `port2`) experiences a routing blackhole o
 
 **Live Execution: Please enlarge for clearer video**
 
+https://github.com/user-attachments/assets/de93a357-91ea-441f-9786-3726938f00af
+
 ---
 
 ## Lab Architecture & Addressing
