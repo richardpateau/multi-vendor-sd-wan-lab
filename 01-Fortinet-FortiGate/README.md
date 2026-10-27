@@ -8,55 +8,88 @@ Every configuration change was validated using CLI packet sniffing, Wireshark PC
 ---
 
 ## Lab Topology
-*   **HQ Site:** FortiGate-VM (Port1: LAN, Port2: MPLS/ISP-A, Port3: Broadband/ISP-B)
-*   **Branch Site:** FortiGate-VM (Port1: LAN, Port2: MPLS/ISP-A, Port3: Broadband/ISP-B)
-*   **Underlay:** Cisco vIOS routers simulating independent ISP backbones.
-*   **Endpoints:** Alpine Linux (iPerf3 Server at HQ, TCPDump/Client at Branch).
-
+ 
+![Topology](topology.png)
+ 
+| Component | Role |
+|-----------|------|
+| HQ FortiGate-VM | Port1 LAN, Port2 MPLS/ISP-A, Port3 Broadband/ISP-B |
+| Branch FortiGate-VM | Port1 LAN, Port2 MPLS/ISP-A, Port3 Broadband/ISP-B |
+| Cisco vIOS routers | Two independent ISP backbones (underlay) |
+| Alpine Linux hosts | iPerf3 server at HQ; TCPDump and client at Branch |
+ 
 ---
 
-## Task Breakdown & Evidence Matrix
+## Results Summary
+ 
+| # | Scenario | Outcome | Folder |
+|---|----------|---------|--------|
+| 1 | SLA-based failover (active/standby) | 1-2 packets lost on failure, then immediate recovery | [Policy 1](Policy-1-SLA-Failover/) |
+| 2 | Application-aware routing (FQDN) | SaaS traffic steered by domain name; path change confirmed after policy edit | [Policy 2](Policy-2-Application-Aware/) |
+| 3 | Active/active load balancing | Sessions egress both links simultaneously (PCAP on each port) | [Policy 3](Policy-3-Load-Balancing/) |
+| 4 | Traffic shaping and QoS | Bulk transfer held to a hard 2 Mbps cap | [Policy 4](Policy-4-Traffic-Shaping-QoS/) |
+| 5 | IPsec overlay on SD-WAN zone | ESP-encrypted traffic; tunnel stays up through WAN failover | [Policy 5](Policy-5-IPsec-Overlay/) |
+ 
+---
 
-### Task 1: SLA-Based Performance Failover (Active/Standby)
-**Objective:** Ensure business continuity by monitoring underlay health and automatically failing over critical traffic when a link degrades.
-*   **Engineering Discovery:** Configured distinct ICMP health checks probing the **specific next-hop gateway** of each WAN link (`10.0.1.1` for ISP-A, `10.0.2.1` for ISP-B) rather than a public IP. This ensures accurate, per-link underlay state detection.
-*   **Key Evidence:**
-    *   `TESTING POLICY 1 get diagnose sys ssdwan member baseline.png` (Baseline health checks passing).
-    *   `POLICY 1 continuours ping.png` (The "Money Shot": shows exactly 1-2 dropped packets during link failure, followed by immediate recovery).
-    *   `diagnose sys sdwan health-check during failure.png` (Health check correctly detecting ISP-A gateway unreachable).
-    *   `sd-wan-test-1.pcap` & `sd-wan-test-2026-10-26_02.06.16.mp4` (Packet-level and video proof of failover).
-
+## Task Details
+ 
+### Task 1: SLA-Based Performance Failover
+ 
+**Objective:** Detect a degraded link and move critical traffic automatically.
+ 
+**Approach:** Each WAN link has its own ICMP health check pointed at that link's **next-hop gateway** (`10.0.1.1` for ISP-A, `10.0.2.1` for ISP-B), not a public IP. This gives accurate per-link state. Failure was injected with an ACL on ISP-A while the interface stayed up, so only the SLA check could detect it.
+ 
+**Evidence**
+- Baseline: `TESTING POLICY 1 get diagnose sys ssdwan member baseline.png`
+- Failure detection: `diagnose sys sdwan health-check during failure.png`
+- Continuous ping showing 1-2 lost packets: `POLICY 1 continuours ping.png`
+- Traceroute before and during failure, plus recovery screenshots
+- Packet-level and video proof: `sd-wan-test-1.pcap`, `sd-wan-test-2026-10-26_02.06.16.mp4`
 ### Task 2: Application-Aware Routing (FQDN)
-**Objective:** Dynamically steer critical SaaS traffic over the optimal WAN path based on domain names rather than static IPs.
-*   **Engineering Discovery:** Implemented FQDN address objects with a strict `cache-ttl` to ensure the FortiGate dynamically resolves DNS changes without requiring policy reboots.
-*   **Key Evidence:**
-    *   `fortinate show firewall address SAAS object.png` (FQDN object creation).
-    *   `Application aware test DNS server nslookup server itself.png` (Proving DNS resolution).
-    *   `Fortinet show system sdwan policy 2.png` (SD-WAN rule matching the FQDN object).
-
-### Task 3: Active/Active Load Balancing (Round-Robin)
-**Objective:** Maximize aggregate WAN bandwidth by distributing sessions across both links simultaneously.
-*   **Engineering Discovery:** Discovered that in `mode auto`, using `priority-members` triggers a **Round-Robin** distribution rather than strict Active/Passive failover. Bypassed Fortinet's default Source-IP hashing by assigning a secondary IP to the client to force dual-stream distribution.
-*   **Key Evidence:**
-    *   `ROUND ROBIN TEST SINGLE STREAM CONFIGURATION ON FORTINET.png` (Configuration proof).
-    *   `round-robin-test-port-2.pcapng` & `round-robin-test-port-3.pcapng` (Simultaneous egress proof).
-    *   `sd-wan-test-round-robin-single-stream-2026-10-26_09.40.45.mp4` (Video proof of session distribution).
-
-### Task 4: SD-WAN Traffic Shaping & QoS
-**Objective:** Enforce strict bandwidth limits to prevent bulk data transfers from choking critical applications.
-*   **Engineering Discovery:** Separated the SD-WAN steering rule (`config system sdwan`) from the bandwidth enforcement rule (`config firewall shaping-policy`). This follows enterprise best practices for granular traffic control.
-*   **Key Evidence:**
-    *   `show firewall shaping-policy.png` (Proving the 2000 Kbps limit is configured).
-    *   `wirehsark io shows shaping being successful.png` (Wireshark IO graph showing the hard cap at exactly 2 Mbps).
-    *   `qos-shaping-test-2026-10-27_00.41.33.mp4` (Video proof of traffic throttling).
-
-### Task 5: IPsec Overlay Tunnel over SD-WAN Zone
-**Objective:** Secure branch-to-branch traffic with IPsec encryption while retaining dynamic SD-WAN path selection and failover.
-*   **Engineering Discovery:** Bound the IPsec Phase 1 interface directly to the `virtual-wan-link` zone instead of a physical interface. Captured ESP (Encapsulating Security Payload) packets to prove encryption, and verified the tunnel remains `UP` during physical WAN failover.
-*   **Key Evidence:**
-    *   `diagnose vpn tunnel list 1st VPN encrypted packets going up after ping.png` (Tunnel status and encrypted packet counters).
-    *   `icmp and esp trailing proof of encryption.png` (PCAP proving traffic is encrypted via ESP).
-    *   `get router info routing-table all HQ.png` (Routing table showing the tunnel interface).
+ 
+**Objective:** Steer critical SaaS traffic by domain name instead of static IPs.
+ 
+**Approach:** An FQDN address object feeds an SD-WAN rule. A strict `cache-ttl` makes the FortiGate pick up DNS changes without manual intervention. An intentional policy change moved traffic from Port2 to Port3 to confirm the rule is what controls the path.
+ 
+**Evidence**
+- FQDN object: `fortinate show firewall address SAAS object.png`
+- DNS resolution: `Application aware test DNS server nslookup server itself.png`, `NS LOOKUP HQ NODE.png`
+- SD-WAN rule: `Fortinet show system sdwan policy 2.png`
+- Path change: `POLICY 2 switching to port 3.png`, `POLICy CHANGE SUCCESSFUL PC is prefering port 3 after changing .png`
+### Task 3: Active/Active Load Balancing
+ 
+**Objective:** Use both WAN links at once to raise aggregate bandwidth.
+ 
+**Approach:** Three configurations were tested: source/destination-IP hashing with a single stream, the same with two streams, and round-robin. With hashing, a single flow always lands on one link, so a second client IP was needed to see both links in use. Round-robin spreads sessions regardless.
+ 
+**Evidence**
+- Configuration: `ROUND ROBIN TEST SINGLE STREAM CONFIGURATION ON FORTINET.png`
+- Hash-based tests: `single-stream-test-port-2/3.pcapng`, `double-stream-test-port-2/3.pcapng`
+- Round-robin egress on both ports: `round-robin-test-port-2.pcapng`, `round-robin-test-port-3.pcapng`
+- Video: `sd-wan-test-round-robin-single-stream-2026-10-26_09.40.45.mp4`
+### Task 4: Traffic Shaping and QoS
+ 
+**Objective:** Stop bulk transfers from starving critical applications.
+ 
+**Approach:** Path selection (`config system sdwan`) and bandwidth enforcement (`config firewall shaping-policy`) are kept as separate objects, so each can be changed independently.
+ 
+**Evidence**
+- Shaper and policy config: `show firewall shaper traffic-shaper .png`, `show firewall shaping-policy.png`
+- Wireshark IO graph showing the cap: `wirehsark io shows shaping being successful.png`
+- Video: `qos-shaping-test-2026-10-27_00.41.33.mp4`
+### Task 5: IPsec Overlay over the SD-WAN Zone
+ 
+**Objective:** Encrypt branch-to-branch traffic while keeping SD-WAN path selection and failover.
+ 
+**Approach:** The IPsec Phase 1 interface is bound to the `virtual-wan-link` zone rather than a single physical port. ESP packets in the capture show the traffic is encrypted, and the tunnel stayed `UP` when a physical WAN link failed.
+ 
+**Evidence**
+- Tunnel state and encrypted counters: `diagnose vpn tunnel list 1st VPN encrypted packets going up after ping.png`
+- IKE/IPsec status on both ends: `diagnose vpn ike gateway list HQ.png` / `BRANCH.png`, `diagnose vpn ipsec status HQ .png` / `BRANCH.png`
+- ESP proof: `icmp and esp trailing proof of encryption.png`, `ESP PCAPs found overview.png`
+- Routing: `get router info routing-table all HQ.png`, `get router info routing-table all Branch .png`
+- Video: `sd-wan-esp-pcap-2026-10-27_04.58.36.mp4`
 
 ---
 
