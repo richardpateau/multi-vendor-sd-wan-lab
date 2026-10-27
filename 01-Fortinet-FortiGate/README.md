@@ -5,20 +5,13 @@ This module validates Fortinet FortiOS SD-WAN **intent-based, performance-driven
 
 When the primary MPLS link (`ISP-A` / `port2`) experiences a routing blackhole or upstream failure (simulated via an ingress ACL blocking health probes on the ISP router), the FortiGate detects the failed health-check and automatically steers branch-bound traffic to the secondary Broadband link (`ISP-B` / `port3`) with zero manual intervention and sub-second convergence.
 
+**Live Execution: Please enlarge for clearer video**
+
 ---
 
 ## Lab Architecture & Addressing
 
-```
-[ HQ Server ]
-  192.168.1.10/24
-        │
-    (port1: 192.168.1.1)
-  [ FortiGate HQ ]
-    ├── port2 (10.0.1.2/30) ──> [ ISP-A: MPLS ] (10.0.1.1) ──> (10.0.1.6) port2 ──┐
-    │                                                                               [ FortiGate Branch ] ── (port1: 192.168.2.1) ── [ Branch Client ]
-    └── port3 (10.0.2.2/30) ──> [ ISP-B: B-Band ] (10.0.2.1) ──> (10.0.2.6) port3 ──┘                                               192.168.2.10/24
-```
+![sd-wan](screenshots/topology.png)
 
 ### Underlay & Subnet Matrix
 | Device / Role | Interface | IP Address | Subnet Mask | Next-Hop / Gateway |
@@ -31,6 +24,14 @@ When the primary MPLS link (`ISP-A` / `port2`) experiences a routing blackhole o
 | **Branch FortiGate** | `port3` (WAN2) | `10.0.2.6` | `255.255.255.252` | `10.0.2.5` |
 | **HQ Server** | `eth0` | `192.168.1.10` | `255.255.255.0` | `192.168.1.1` |
 | **Branch Client** | `eth0` | `192.168.2.10` | `255.255.255.0` | `192.168.2.1` |
+
+**HQ-Fortigate: show system interface**
+
+![sd-wan](screenshots/show-system-interface-hq.png)
+
+**Branch-Fotigate: show system interface**
+
+![topology](screenshots/show-system-interface-branch.png)
 
 ---
 
@@ -63,6 +64,7 @@ config system sdwan
     end
 end
 ```
+![sd-wan](screenshots/health-check-show.png)
 
 ### 2. SD-WAN Service Rule (Priority Steering)
 * **Steering Strategy:** `mode priority` (Active/Standby).
@@ -85,6 +87,7 @@ config system sdwan
     end
 end
 ```
+![sd-wan](screenshots/isp-health-check-service.png)
 
 ### 3. Static Routing Integration
 ```fortios
@@ -100,10 +103,13 @@ config router static
     next
 end
 ```
+*Edit 1 is the default route* 
+
+![sd-wan](screenshots/config-router-static.png)
 
 ---
 
-## Test Execution & Verification Lifecycle
+## Test Execution & Verification 
 
 ### Phase 1: Baseline Verification (Primary Path Healthy)
 **Objective:** Confirm both underlay links are passing health checks and outbound traffic exits through `port2` (ISP-A MPLS).
@@ -116,6 +122,7 @@ end
    Health Check(ISP_B_Monitor):
    Seq(2 port3): state(alive), packet-loss(0.000%) latency(10.048), jitter(1.689)
    ```
+![sd-wan](screenshots/diagnose-health-check-baseline.png)
 
 2. **Verify Active Member Steering:**
    ```text
@@ -123,6 +130,7 @@ end
    Member(1): interface: port2, flags=0x0 , gateway: 10.0.1.1, priority: 1 1024, weight: 0
    Member(2): interface: port3, flags=0x0 , gateway: 10.0.2.1, priority: 1 1024, weight: 0
    ```
+![sd-wan](screenshots/diagnose-sd-wan-member-baseline.png)
 
 3. **Verify Baseline Traceroute (HQ Server -> Branch Client):**
    ```bash
@@ -133,10 +141,28 @@ end
     3  10.0.1.6    (10.0.1.6)      15.393 ms   <-- Branch WAN1 Interface
     4  192.168.2.10 (192.168.2.10) 14.918 ms
    ```
+![sd-wan](screenshots/traceroute-baseline.png)
+
+
+4. **SD-WAN Service 1 Baseline:**
+   ```bash
+   Service(1): Address Mode(IPV4) flags=0x240 use-shortcut-sla
+ Tie break: cfg
+  Gen(209), TOS(0x0/0x0), Protocol(0: 1->65535), Mode(priority), link-cost-factor(latency), link-cost-threshold(10), heath-check(ISP_A_Monitor ISP_B_Monitor)
+  Members(2): 
+    1: Seq_num(1 port2), alive, latency: 9.259, selected
+    2: Seq_num(2 port3), alive, latency: 10.149, selected
+  Src address(1): 
+	0.0.0.0-255.255.255.255
+
+  Dst address(1): 
+	192.168.2.0-192.168.2.255
+   ```
+![sd-wan](screenshots/diagnose-service-1.png)
 
 ---
 
-### Phase 2: Simulating Failure (Upstream ACL Blackhole)
+### Phase 2: Simulating Failure (Upstream ACL)
 **Objective:** Simulate an underlay ISP failure without physical interface down-state by denying FortiGate probe packets on `ISP-1-MPLS`.
 
 ```cisco
@@ -147,8 +173,12 @@ ISP-1-MPLS(config-ext-nacl)# exit
 ISP-1-MPLS(config)# interface FastEthernet0/0
 ISP-1-MPLS(config-if)# ip access-group BLOCK-SDWAN-PROBE in
 ```
+![sd-wan](screenshots/isp-a-intentional-failure-acl.png)
 
 * **Physical State Check:** `FastEthernet0/0` stays **UP / UP**, proving traditional static routing with interface-tracking would fail to detect this failure.
+
+![sd-wan](screenshots/isp-a-port-remains-up.png)
+
 * **SD-WAN Service Re-Evaluation:**
   ```text
   FortiGate-VM64-KVM # diagnose sys sdwan service
@@ -159,7 +189,18 @@ ISP-1-MPLS(config-if)# ip access-group BLOCK-SDWAN-PROBE in
     1: Seq_num(2 port3), alive, latency: 8.960, selected  <-- PROMOTED TO ACTIVE
     2: Seq_num(1 port2), dead                             <-- FLAGGED DEAD
   ```
-
+  ![sd-wan](screenshots/diagnose-sd-wan-service-during-failure.png)
+  
+* **SD-WAN Health Check Re-Evaluation:**
+ ```text
+FortiGate-VM64-KVM # diagnose sys sdwan health-check
+Health Check(ISP_A_Monitor):
+Seq(1 port2): state(dead), packet-loss(43.000%) sla_map=0x0
+Health Check(ISP_B_Monitor):
+Seq(2 port3): state(alive), packet-loss(0.000%) latency(8.904), jitter(1.932), mos(4.398), bandwidth-up(9999998), bandwidth-dw(9999999), bandwidth-bi(19999997) sla_map=0x0
+  ```
+ ![sd-wan](screenshots/health-check-during-failure.png)
+  
 ---
 
 ### Phase 3: Traffic Failover & Data Plane Continuity
@@ -174,9 +215,14 @@ ISP-1-MPLS(config-if)# ip access-group BLOCK-SDWAN-PROBE in
     3  10.0.2.6    (10.0.2.6)      24.376 ms   <-- Branch WAN2 Interface
     4  192.168.2.10 (192.168.2.10) 24.905 ms
    ```
+![sd-wan](screenshots/traceroute-during-failure.png)
+
+![topology](screenshots/traceroute-before-after.png)
 
 2. **Continuous ICMP Stream Analysis:**
    Continuous ICMP pings remained uninterrupted across the transition with sub-second failover (0% packet drop observed once next-hop reconverged).
+
+![sd-wan](screenshots/continuous-ping.png)
 
 ---
 
@@ -188,6 +234,7 @@ ISP-1-MPLS(config-if)# ip access-group BLOCK-SDWAN-PROBE in
    ISP-1-MPLS(config)# interface FastEthernet0/0
    ISP-1-MPLS(config-if)# no ip access-group BLOCK-SDWAN-PROBE in
    ```
+   ![sd-wan](screenshots/isp-a-removing-acl.png)
 
 2. **SD-WAN Service Re-selection:**
    ```text
@@ -200,6 +247,8 @@ ISP-1-MPLS(config-if)# ip access-group BLOCK-SDWAN-PROBE in
      2: Seq_num(2 port3), alive, latency: 9.521, selected
    ```
    *Traffic immediately preempts back to Priority 1 (`port2`) cleanly.*
+
+![sd-wan](screenshots/recovery-diagnose-sd-wan-service.png)
 
 ---
 
