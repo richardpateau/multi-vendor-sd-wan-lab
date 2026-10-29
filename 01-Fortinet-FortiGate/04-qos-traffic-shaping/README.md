@@ -25,18 +25,18 @@ https://github.com/user-attachments/assets/f4317ae5-a98f-454f-b6c7-e0343bcd3282
 | **Branch FortiGate** | `port1` (LAN) | `192.168.2.1` | `255.255.255.0` | Enforcement Point (Shaper & SD-WAN Gateway) |
 | **Branch FortiGate** | `port2` / `port3` | `10.0.1.6` / `10.0.2.6` | `255.255.255.252` | WAN Members in `virtual-wan-link` |
 | **Branch Client** | `eth0` | `192.168.2.10` | `255.255.255.0` | Traffic Generator initiating 10 Mbps test stream |
-| **HQ PC2** | `eth0` | `192.168.1.15` | `255.255.255.0` | Target Server (`QoS-Test-Dest`) running iPerf3 (`:5201`) |
+| **HQ Server 2** | `eth0` | `192.168.1.15` | `255.255.255.0` | Target Server (`QoS-Test-Dest`) running iPerf3 (`:5201`) |
 
 ---
 
 ## Configuration & Engineering Design Logic
 
-### 1. Architectural Separation of Concerns
+### 1. Architecture
 In FortiOS, best-practice design decouples **traffic steering** from **bandwidth enforcement**:
-* **Steering Domain (`config system sdwan`):** Selects which member interface (`port2` or `port3`) the session traverses based on health checks, SLA metrics, or administrator priority.
-* **QoS Enforcement Domain (`config firewall shaping-policy`):** Evaluates ingress/egress interface tuples and address objects to attach bandwidth policers and token-bucket meters to the session flow.
+* **Steering Domain (config system sdwan):** Selects which member interface (`port2` or `port3`) the session traverses based on health checks, SLA metrics, or administrator priority.
+* **QoS Enforcement Domain (config firewall shaping-policy):** Evaluates ingress/egress interface tuples and address objects to attach bandwidth policers and token-bucket meters to the session flow.
 
-### 2. Traffic Shaper Profile (`SDWAN-QoS-Cap-2Mbps`)
+### 2. Traffic Shaper Profile (SDWAN-QoS-Cap-2Mbps)
 The profile enforces a hard rate ceiling of **2000 Kbps (250 KB/s)**. Setting `per-policy enable` ensures that this bandwidth pool is dedicated exclusively to matching policy flows.
 
 ```fortios
@@ -100,8 +100,8 @@ end
 ## Verification & Execution Lifecycle
 
 ### Phase 1: Unthrottled Baseline Generation (No Shaper)
-Before enforcing the policy, an iPerf3 stream of 10 Mbps was generated from `192.168.2.10` targeting `192.168.1.15`.
-* **Observed Baseline:** The traffic unconstrained peaked and fluctuated between **8 Mbps and 10.2 Mbps**, consuming maximum underlay capacity and causing bufferbloat on intermediate links.
+Before Testing the policy, an iPerf3 stream of 10 Mbps was generated from `192.168.2.10` targeting `192.168.1.10` - HQ Server
+* **Observed Baseline:** The traffic unconstrained peaked and fluctuated between **8 Mbps and 10.2 Mbps**, consuming maximum underlay capacity.
 
 ![sd-wan](screenshots/io-graph-no-shaping.png)
 
@@ -114,8 +114,8 @@ localhost:~# iperf3 -c 192.168.1.15 -u -b 10M -t 30 -p 5201
 ```
 
 1. **Wireshark I/O Graph Verification:**
-   * When the 10 Mbps burst hits the FortiGate, the rate spikes momentarily (~3.6 Mbps) as the initial token bucket empties.
-   * Within **1 second**, the rate is clamped down and **flatlines at exactly 2.0 Mb/sec (2,000,000 bits/sec)** for the remainder of the test duration (seconds 197 through 222).
+   * When the 10 Mbps burst hits the FortiGate, the rate spikes momentarily (~3.6 Mbps).
+   * Within **1 second**, the rate is clamped down **at exactly 2.0 Mb/sec (2,000,000 bits/sec)** for the remainder of the test duration (seconds 197 through 222).
    * **Result:** Textbook rate-limiting plateau confirming zero bandwidth leakage beyond the configured threshold.
 
 ![sd-wan](screenshots/io-graph-shaping.png)
@@ -151,19 +151,17 @@ localhost:~# iperf3 -c 192.168.1.15 -u -b 10M -t 30 -p 5201
    reply-shaper=SDWAN-QoS-Cap-2Mbps
    shaper: org_g=0/org_m=250000/org_b=0 rply_g=0/rply_m=250000/rply_b=0
    ```
-   * *The parameters `org_m=250000` (Origin Maximum = 250,000 Bytes/sec = 2 Mbps) and `rply_m=250000` prove hardware/kernel-level flow enforcement.*
-
 ---
 
-### Raw Packet Capture (PCAP) Download
+## Raw Packet Capture (PCAP) Download
 
 For independent analysis in Wireshark, the raw packet capture trace corresponding to the I/O graphs and bandwidth throttling test is hosted in Google Drive:
 
-📁 **[Open Google Drive QoS PCAP Directory](https://drive.google.com/drive/folders/1xNKku0h2z0-lYexh2hcQ3mCRdz?usp=sharing)**
+📁 **[Open Google Drive QoS PCAP Directory](https://drive.google.com/drive/folders/1xNKku0h2z0-lYexh2hcQ3mCRdzhoU6d6?usp=sharing)**
 
-| Artifact | Location | Size / Type | What It Validates |
+| Artifact | Location | Type | What It Validates |
 | :--- | :--- | :--- | :--- |
-| **`qos-pcap-proof.pcapng`** | [Google Drive Link](https://drive.google.com/drive/folders/1xNKku0h2z0-lYexh2hcQ3mCRdz?usp=sharing) | Raw Packet Capture (`.pcapng`) | Complete packet trace showing the transition from unconstrained 10 Mbps burst to a hard 2.0 Mbps rate-limited plateau. |
+| **`qos-pcap-proof.pcapng`** | [Google Drive Link](https://drive.google.com/drive/folders/1xNKku0h2z0-lYexh2hcQ3mCRdzhoU6d6?usp=sharing) | Raw Packet Capture (`.pcapng`) | Complete packet trace showing the transition from unconstrained 10 Mbps burst to a hard 2.0 Mbps rate-limited plateau. |
 
 > **Wireshark Display Filter:** To isolate the test flow, apply:  
 > `ip.addr == 192.168.1.15 && (tcp.port == 5201 || udp.port == 5201)`
@@ -182,7 +180,7 @@ For independent analysis in Wireshark, the raw packet capture trace correspondin
 | **Phase 2: Baseline Execution** | `io-graph-no-shaping.png` | **Baseline Proof:** Wireshark I/O graph showing unthrottled traffic spiking up to ~10 Mbps without QoS. |
 | **Phase 2: Bandwidth Clamping** | `io-graph-shaping.png` | **Crucial Proof:** Wireshark I/O graph showing the stream flatlining precisely at the 2.0 Mbps limit. |
 | **Phase 3: Kernel Telemetry** | `traffic-shaper-dropped-packets.png` | Kernel output (`diagnose firewall shaper traffic-shaper list`) proving 24 packets (36,000 bytes) dropped to enforce the ceiling. |
-| **Phase 3: Packet Evidence** | [Drive: `qos-pcap-proof.pcapng`](https://drive.google.com/drive/folders/1xNKku0h2z0-lYexh2hcQ3mCRdz?usp=sharing) | Full raw packet capture file containing all frames and timing data for the test. |
+| **Phase 3: Packet Evidence** | [Drive: `qos-pcap-proof.pcapng`](https://drive.google.com/drive/folders/1xNKku0h2z0-lYexh2hcQ3mCRdzhoU6d6?usp=sharing) | Full raw packet capture file containing all frames and timing data for the test. |
 | **Phase 3: Live Verification** | `qos-shaping-test-2026-10-27_00.41.33.mp4` | Video recording of the live iPerf3 execution, Wireshark clamping, and stateful session inspection. |
 | **Runbook** | `runbook` | Operational procedure containing diagnostic commands, session clearing, and filter definitions. |
 
