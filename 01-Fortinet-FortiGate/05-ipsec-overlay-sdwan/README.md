@@ -17,9 +17,9 @@ To solve this, FortiOS utilizes an **SD-WAN Overlay Architecture**:
 
 ## Lab Architecture & Multi-Layer Topology
 
-![sd-wan](screenshots/topology.png)
+![sd-wan](screenshots/sd-wan-vpn.png)
 
-![sd-wan](screenshots/traffic-shaper-dropped-packets.png)
+![sd-wan](screenshots/topology.png)
 
 ### Addressing & Cryptographic Matrix
 | Parameter | Primary Overlay (`HQ-BRANCH-VPN`) | Secondary Overlay (`HQ-BRANCH-VPN-2`) |
@@ -297,6 +297,8 @@ An ICMP ping was initiated from HQ Server (`192.168.1.10`) targeting Branch Clie
        sha256     : 73           83
    ```
 ![sd-wan](screenshots/diagnose-vpn-ipsec-after.png)
+
+
 ---
 
 ### Phase 4: Wire-Level Wireshark Packet Proof
@@ -354,7 +356,6 @@ Packet captures taken on the transit underlay link proved complete payload prote
 | **Phase 3: Wireshark Proof** | `ESP PCAPs found overview.png` | Wireshark capture confirming transit traffic encapsulated in IP Protocol 50 (ESP). |
 | **Phase 3: Wireshark Proof** | `icmp and esp trailing proof of encryption.png` | **Smoking Gun:** Wireshark showing ICMP payload securely enveloped inside ESP. |
 | **Phase 3: Live Video** | `sd-wan-esp-pcap-2026-10-27_04.58.36.mp4` | Screen recording of the live ping stream, Wireshark ESP capture, and CLI tunnel statistics. |
-| **Runbook** | `runbook` | Operational SOP containing IPsec troubleshooting, session clearing, and tunnel reset commands. |
 
 ---
 

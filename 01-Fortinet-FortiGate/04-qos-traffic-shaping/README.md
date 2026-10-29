@@ -182,7 +182,6 @@ For independent analysis in Wireshark, the raw packet capture trace correspondin
 | **Phase 3: Kernel Telemetry** | `traffic-shaper-dropped-packets.png` | Kernel output (`diagnose firewall shaper traffic-shaper list`) proving 24 packets (36,000 bytes) dropped to enforce the ceiling. |
 | **Phase 3: Packet Evidence** | [Drive: `qos-pcap-proof.pcapng`](https://drive.google.com/drive/folders/1xNKku0h2z0-lYexh2hcQ3mCRdzhoU6d6?usp=sharing) | Full raw packet capture file containing all frames and timing data for the test. |
 | **Phase 3: Live Verification** | `qos-shaping-test-2026-10-27_00.41.33.mp4` | Video recording of the live iPerf3 execution, Wireshark clamping, and stateful session inspection. |
-| **Runbook** | `runbook` | Operational procedure containing diagnostic commands, session clearing, and filter definitions. |
 
 ---
 
