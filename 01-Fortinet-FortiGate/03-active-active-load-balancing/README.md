@@ -135,7 +135,7 @@ end
 ### Phase 1: Baseline Single-Stream Verification (The "Pinning" Proof)
 A high-bandwidth TCP iPerf3 stream was generated from `Branch Client 1` (`192.168.2.10`) targeting `HQ Server 1` (`192.168.1.10`). Packet captures were taken simultaneously on both physical WAN interfaces.
 
-1. **Packet Capture on MPLS (`port2`):**
+1. **Packet Capture on MPLS (port2):**
    * Filter: `ip.src == 192.168.2.10`
    * **Result:** **0 packets captured (0.0%)**. Confirms no traffic leaks onto the primary MPLS link.
 
@@ -185,7 +185,7 @@ Secondary endpoints (`Branch PC 2` @ `192.168.2.15` and `HQ PC 2` @ `192.168.1.1
    Dst address(1):
            192.168.1.10-192.168.1.10
    ```
-   Both Member 1 (`port2`) and Member 2 (`port3`) display `alive` and `selected`.
+   Both Member 1 (**port2**) and Member 2 (**port3**) display `alive` and `selected`.
 
 ![sd-wan](screenshots/sd-wan-service-3.png)
 
@@ -221,22 +221,29 @@ end
 
 ---
 
+Here is the updated **Evidence Index** table mapped to all 15 files in your `screenshots/` directory:
+
+---
+
 ## Evidence Index
 
 | Phase | Artifact / Screenshot | Purpose & Verification |
 | :--- | :--- | :--- |
-| **Phase 1: Baseline** | `3 stream test topology.png` | Network topology diagram showing multi-host testbed at HQ and Branch. |
-| **Phase 1: Baseline** | `sh firewall address.png` | Confirms address object and address group configuration for iPerf server pool. |
-| **Phase 1: Baseline** | `single-stream-pcap PORT 2 showing no traffic from branch node.png` | Wireshark capture on `port2` (MPLS) displaying 0 packets from `192.168.2.10`. |
-| **Phase 1: Baseline** | `single stream pcap PORT 3 is the destination port .png` | Wireshark capture on `port3` (Broadband) displaying 90,095 packets (99.2%). |
-| **Phase 1: Baseline** | `sd-wan-test-single-stream-source-dest-ip-2026-10-26_09.23.48.mp4` | Video recording proving single-stream hashing behavior and link pinning. |
-| **Phase 2: Active/Active** | `show system sd wan.png` | Displays overall SD-WAN service inventory, health checks, and member lists. |
-| **Phase 2: Active/Active** | `HQ deivce 2 listening for iperf.png` | Confirms secondary iPerf server (`192.168.1.15`) listening on port 5201. |
-| **Phase 2: Active/Active** | `diagnose sys sd wan service.png` | Service table showing Rule 3 with both `port2` and `port3` simultaneously `selected`. |
-| **Phase 2: Active/Active** | `get system sd wan .png` | Kernel verification of SD-WAN members, sequence IDs, and SLA compliance flags. |
-| **Phase 2: Active/Active** | `sd-wan-test-double-stream-source-dest-ip-2026-10-26_09.29.25.mp4` | Live capture showing simultaneous throughput generation across both WAN links. |
-| **Phase 3: Round-Robin** | `ROUND ROBIN TEST SINGLE STREAM CONFIGURATION ON FORTINET.png` | CLI configuration snippet applying `set hash-mode round-robin` under Rule 3. |
-| **Phase 3: Round-Robin** | `sd-wan-test-round-robin-single-stream-2026-10-26_09.40.45.mp4` | Video evidence proving sequential sessions from the same host alternate across WAN paths. |
+| **Phase 1: Architecture & Topology** | `screenshots/load-balancing-visio.png` | Network topology diagram showing multi-host endpoints at HQ/Branch and dual-WAN fabric. |
+| **Phase 1: Architecture & Topology** | `screenshots/show-firewall-address.png` | Confirms definition of destination address objects (`iPerf-10`, `iPerf-15`, `iPerf-20`). |
+| **Phase 1: Architecture & Topology** | `screenshots/show-addr-groups.png` | Confirms address group `iPerf-Servers` bundling individual iPerf targets. |
+| **Phase 1: Architecture & Topology** | `screenshots/show-isp-health-edit-2.png` | Displays SLA thresholds (latency, jitter, packet loss) under `ISP_A_Monitor` and `ISP_B_Monitor`. |
+| **Phase 1: Architecture & Topology** | `screenshots/show-system-sd-wan.png` | Overall SD-WAN configuration overview displaying zones, members, and service rule inventory. |
+| **Phase 2: Single-Stream Pinning** | `screenshots/hq-listening.png` | Confirms target HQ iPerf3 server (`192.168.1.15`) active and listening on port 5201. |
+| **Phase 2: Single-Stream Pinning** | `screenshots/pcap-port-2-empty.png` | **Negative Proof:** Wireshark capture on `port2` (MPLS) showing 0 packets during single-stream test. |
+| **Phase 2: Single-Stream Pinning** | `screenshots/pcap-port-3-preferred-traffic.png` | **Baseline Proof:** Wireshark capture on `port3` (Broadband) capturing 100% of single-stream flow. |
+| **Phase 3: Dual-Stream Active/Active** | `screenshots/source-dest-ip.png` | CLI snippet configuring `set hash-mode source-dest-ip-based` under SD-WAN Rule 3. |
+| **Phase 3: Dual-Stream Active/Active** | `screenshots/sd-wan-service-3.png` | Service table (`diagnose sys sdwan service`) showing Rule 3 with both `port2` and `port3` `selected`. |
+| **Phase 3: Dual-Stream Active/Active** | `screenshots/get-system-sd-wan.png` | System status verification confirming SLA compliance flags and sequence mappings. |
+| **Phase 3: Dual-Stream Active/Active** | `screenshots/port-2-dual-stream.png` | Wireshark capture on `port2` proving concurrent throughput generation during dual-stream test. |
+| **Phase 3: Dual-Stream Active/Active** | `screenshots/port-3-dual-stream.png` | Wireshark capture on `port3` proving concurrent throughput generation during dual-stream test. |
+| **Phase 3: Dual-Stream Active/Active** | `screenshots/port-2-and-3-pcap.png` | **Crucial Proof:** Side-by-side capture confirming simultaneous active utilization across both WANs. |
+| **Phase 4: Round-Robin Session Steering** | `screenshots/round-robin-config.png` | CLI configuration applying `set hash-mode round-robin` for sequential per-session link alternation. |
 
 ---
 
