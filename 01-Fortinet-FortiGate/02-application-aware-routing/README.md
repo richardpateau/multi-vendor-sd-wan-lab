@@ -3,9 +3,9 @@
 ## Executive Summary
 Modern enterprise SaaS applications (e.g., Microsoft 365, Salesforce, AWS workspaces) rely on dynamic public IP pools and Content Delivery Networks (CDNs), making static IP whitelisting impractical and high maintenance. 
 
-This module implements **Application-Aware Routing** on Fortinet FortiOS SD-WAN using **FQDN (Fully Qualified Domain Name) Address Objects** combined with **SD-WAN Service Rules**. The FortiGate continuously resolves and caches the IP addresses associated with critical business domains and dynamically programs kernel policy routes (`proute`) to steer latency-sensitive SaaS traffic over the dedicated MPLS link (`ISP-A` / `port2`). 
+This module implements **Application-Aware Routing** on Fortinet FortiOS SD-WAN using **FQDN (Fully Qualified Domain Name) Address Objects** combined with **SD-WAN Service Rules**. The FortiGate continuously resolves and caches the IP addresses associated with critical business domains and dynamically programs kernel policy routes (proute) to steer latency-sensitive SaaS traffic over the dedicated MPLS link (ISP-A/port2). 
 
-The implementation was subsequently validated by intentionally modifying the rule priority to dynamically reroute traffic across the secondary Broadband circuit (`ISP-B` / `port3`), confirming deterministic steering and agile traffic engineering.
+The implementation was subsequently validated by intentionally modifying the rule priority to dynamically reroute traffic across the secondary Broadband circuit (ISP-B/port3), confirming deterministic steering and agile traffic engineering.
 
 **Live Execution: Please enlarger for clearer video**
 
