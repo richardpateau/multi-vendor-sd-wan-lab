@@ -23,7 +23,7 @@ https://github.com/user-attachments/assets/4e57dd87-8a12-4bd8-aa0f-812fdeead968
 
 ![sd-wan](screenshots/topology.png)
 
-### Addressing & Cryptographic Matrix
+### Addressing & Cryptographic Index
 | Parameter | Primary Overlay (`HQ-BRANCH-VPN`) | Secondary Overlay (`HQ-BRANCH-VPN-2`) |
 | :--- | :--- | :--- |
 | **Physical Underlay Interface** | `port2` (MPLS) | `port3` (Broadband) |
@@ -145,7 +145,7 @@ config system sdwan
     end
 end
 ```
-![sd-wan](screenshots/tshow-sd-wan-service.png)
+![sd-wan](screenshots/service-5.png)
 
 ### 5. Zone-Based Firewall Security Policies
 Security policies reference the `VPN` zone directly, avoiding policy duplication across multiple tunnels:
