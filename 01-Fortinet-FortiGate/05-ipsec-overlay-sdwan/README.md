@@ -13,8 +13,6 @@ To solve this, FortiOS utilizes an **SD-WAN Overlay Architecture**:
 
 **Live PCAP: ICMP Packets encrypted in real time**
 
-https://github.com/user-attachments/assets/4e57dd87-8a12-4bd8-aa0f-812fdeead968
-
 ---
 
 ## Lab Architecture & Multi-Layer Topology
@@ -145,6 +143,8 @@ config system sdwan
     end
 end
 ```
+![sd-wan](screenshots/to-branch-service.png)
+
 ![sd-wan](screenshots/service-5.png)
 
 ### 5. Zone-Based Firewall Security Policies
@@ -180,7 +180,7 @@ end
 
 ---
 
-## Verification & Execution Lifecycle
+## Verification & Execution 
 
 ### Phase 1: IKE Gateway & Tunnel SA Verification
 Both Phase 1 and Phase 2 Security Associations negotiated concurrently across both providers:
@@ -230,7 +230,7 @@ proposal: des-sha256
    
 ![sd-wan](screenshots/diagnose-sd-wan-member.png)
 
-2. **RIB / Routing Table Verification:**
+2. **Routing Table Verification:**
    ```text
    FortiGate-VM64-KVM # get router info routing-table all
 
@@ -285,7 +285,7 @@ An ICMP ping was initiated from HQ Server (`192.168.1.10`) targeting Branch Clie
    dec:pkts/bytes=110/9240, enc:pkts/bytes=110/12320
    ```
    
-   ![sd-wan](screenshots/encryption-goes-up-1.png)
+   ![sd-wan](screenshots/encryption-goes-up-before.png)
    
    ![sd-wan](screenshots/encryption-before-after.png)
 
