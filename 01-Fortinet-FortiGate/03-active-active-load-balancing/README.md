@@ -41,26 +41,10 @@ To generate distinct 5-tuple flows and validate concurrent dual-link utilization
 
 ---
 
-## Technical Mechanics: The Hashing Challenge
-
-### 1. Why Single Streams Cannot Load Balance
-Fortinet SD-WAN enforces flow-based forwarding rather than per-packet spraying. Per-packet striping creates out-of-order packet delivery, triggering TCP retransmissions, duplicate ACKs, and collapsed TCP receive windows. 
-
-When a single client initiates traffic:
-* All packets share the identical 5-tuple: `{Src-IP, Dst-IP, Proto, Src-Port, Dst-Port}`.
-* The hash engine computes a single output value, pinning the session to one egress member (e.g., `port3`).
-* **Result:** 100% of packets traverse `port3`, while `port2` remains at 0% utilization.
-
-### 2. Hash Mode Algorithms Compared
+### Hash Mode Algorithms Compared
 Inside `config system sdwan` -> `config service` -> `set mode load-balance`:
-* **`set hash-mode source-dest-ip-based`**: Computes an XOR/modulo hash combining Source IP and Destination IP. When multiple source endpoints target multiple destination endpoints, sessions are distributed across all active SLA-compliant members.
-* **`set hash-mode round-robin`**: Alternates incoming new sessions sequentially across each healthy priority member regardless of IP entropy, ensuring predictable balancing in virtualized or low-client environments.
-
-**Live PCAPs - Single Stream (Round Robin)**
-
-**Live PCAPs - Single Stream (source-destination-ip)**
-
-**Live PCAPs - Double Stream (source-destination-ip)**
+* **set hash-mode source-dest-ip-based**: Computes an XOR/modulo hash combining Source IP and Destination IP. When multiple source endpoints target multiple destination endpoints, sessions are distributed across all active SLA-compliant members.
+* **set hash-mode round-robin**: Alternates incoming new sessions sequentially across each healthy priority member regardless of IP entropy, ensuring predictable balancing in virtualized or low-client environments.
 
 ---
 
@@ -89,7 +73,7 @@ end
 
 ![sd-wan](screenshots/show-firewall-address.png)
 
-![sd-wan](screenshots/show-addr-group.png)
+![sd-wan](screenshots/show-addr-groups.png)
 
 ### 2. SLA Probe Target Configuration
 Both members must satisfy explicit SLA health targets before being admitted into the active load-balancing pool:
