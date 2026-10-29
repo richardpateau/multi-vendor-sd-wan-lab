@@ -221,10 +221,6 @@ end
 
 ---
 
-Here is the updated **Evidence Index** table mapped to all 15 files in your `screenshots/` directory:
-
----
-
 ## Evidence Index
 
 | Phase | Artifact / Screenshot | Purpose & Verification |
