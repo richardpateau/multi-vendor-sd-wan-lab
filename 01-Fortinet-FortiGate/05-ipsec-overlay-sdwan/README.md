@@ -13,6 +13,8 @@ To solve this, FortiOS utilizes an **SD-WAN Overlay Architecture**:
 
 **Live PCAP: ICMP Packets encrypted in real time**
 
+https://github.com/user-attachments/assets/4e57dd87-8a12-4bd8-aa0f-812fdeead968
+
 ---
 
 ## Lab Architecture & Multi-Layer Topology
