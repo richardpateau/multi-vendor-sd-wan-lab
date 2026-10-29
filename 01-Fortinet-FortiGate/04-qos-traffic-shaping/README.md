@@ -25,7 +25,7 @@ https://github.com/user-attachments/assets/f4317ae5-a98f-454f-b6c7-e0343bcd3282
 | **Branch FortiGate** | `port1` (LAN) | `192.168.2.1` | `255.255.255.0` | Enforcement Point (Shaper & SD-WAN Gateway) |
 | **Branch FortiGate** | `port2` / `port3` | `10.0.1.6` / `10.0.2.6` | `255.255.255.252` | WAN Members in `virtual-wan-link` |
 | **Branch Client** | `eth0` | `192.168.2.10` | `255.255.255.0` | Traffic Generator initiating 10 Mbps test stream |
-| **HQ Server 2** | `eth0` | `192.168.1.15` | `255.255.255.0` | Target Server (`QoS-Test-Dest`) running iPerf3 (`:5201`) |
+| **HQ PC2** | `eth0` | `192.168.1.15` | `255.255.255.0` | Target Server (`QoS-Test-Dest`) running iPerf3 (`:5201`) |
 
 ---
 
