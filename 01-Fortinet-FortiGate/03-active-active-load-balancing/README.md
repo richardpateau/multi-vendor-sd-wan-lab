@@ -17,9 +17,10 @@ This engineering validation explores the underlying session distribution algorit
 
 To generate distinct 5-tuple flows and validate concurrent dual-link utilization without NAT collisions, multiple dedicated host endpoints were provisioned across both the HQ and Branch sites.
 
+![sd-wan](screenshots/load-balancing-visio.png)
+
 ![sd-wan](screenshots/topology.png)
 
-![sd-wan](screenshots/load-balancing-visio.png)
 
 ### Addressing & Endpoint Roles
 | Device | Interface | IP Address | Subnet Mask | Role / Function |
