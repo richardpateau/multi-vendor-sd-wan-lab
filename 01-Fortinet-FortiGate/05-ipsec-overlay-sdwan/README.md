@@ -375,7 +375,6 @@ For deep-packet inspection in Wireshark, the raw capture trace containing the co
 | **Phase 4: Wireshark Proof** | `screenshots/wireshark-esp.png` | Packet capture confirming all payload frames are encapsulated in IP Protocol 50 (ESP). |
 | **Phase 4: Wireshark Proof** | `screenshots/wireshark-icmp-esp.png` | **Smoking Gun:** Side-by-side capture proving cleartext ICMP is fully enveloped inside ESP on the wire. |
 | **Live Video Recording** | `sd-wan-esp-pcap-2026-10-27_04.58.36.mp4` | Screen recording capturing live ping traffic, real-time Wireshark ESP frames, and CLI tunnel counters. |
-| **Operational Runbook** | `runbook` | Standard Operating Procedure (SOP) containing commands for IKE resets, SA queries, and zone failover tests. |
 
 ---
 
