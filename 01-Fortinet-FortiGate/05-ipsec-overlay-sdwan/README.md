@@ -285,7 +285,7 @@ An ICMP ping was initiated from HQ Server (`192.168.1.10`) targeting Branch Clie
    dec:pkts/bytes=110/9240, enc:pkts/bytes=110/12320
    ```
    
-   ![sd-wan](screenshots/encryption-goes-up-before.png)
+   ![sd-wan](screenshots/encryption-goes-up-after.png)
    
    ![sd-wan](screenshots/encryption-before-after.png)
 
