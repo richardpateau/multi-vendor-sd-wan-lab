@@ -126,7 +126,7 @@ config system sdwan
 end
 ```
 
-![sd-wan](screenshots/sourece-dest-ip.png)
+![sd-wan](screenshots/source-dest-ip.png)
 
 ---
 
