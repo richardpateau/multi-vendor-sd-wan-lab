@@ -247,6 +247,22 @@ Here is the updated **Evidence Index** table mapped to all 15 files in your `scr
 
 ---
 
+## Raw Packet Capture (PCAP) Downloads
+
+For independent verification in Wireshark, the raw packet capture traces generated across both physical WAN links are hosted in Google Drive:
+
+📁 **[Open Full Google Drive PCAP Directory](https://drive.google.com/drive/folders/1rYZjxTyklGhErzAVXRXHV4locB31mRvn?usp=sharing)**
+
+| Test Scenario | Interface | File Name | Size | What to Look For |
+| :--- | :--- | :--- | :--- | :--- |
+| **1. Single-Stream Baseline** | `port2` (MPLS) | `single-stream-test-port-2.pcapng` | 63 KB | **0% traffic** (confirms flow pinning prevents traffic leakage). |
+| **1. Single-Stream Baseline** | `port3` (B-Band) | `single-stream-test-port-3.pcapng` | 131 MB | **100% traffic** (confirms single 5-tuple pinned to Broadband). |
+| **2. Dual-Stream Active/Active** | `port2` (MPLS) | `double-stream-test-port-2.pcapng` | 96.8 MB | Sustained ~95 Mbps stream from `192.168.2.15` -> `192.168.1.15`. |
+| **2. Dual-Stream Active/Active** | `port3` (B-Band) | `double-stream-test-port-3.pcapng` | 145.5 MB | Concurrent ~95 Mbps stream from `192.168.2.10` -> `192.168.1.10`. |
+| **3. Round-Robin Balancing** | `port2` (MPLS) | `round-robin-test-port-2.pcapng` | 65.7 MB | Captures alternating odd-numbered session sequences. |
+| **3. Round-Robin Balancing** | `port3` (B-Band) | `round-robin-test-port-3.pcapng` | 129.3 MB | Captures alternating even-numbered session sequences. |
+
+
 ## Business Value Delivered
 * **100% WAN Utilization:** Eliminates stranded bandwidth by turning passive, standby broadband lines into active production paths.
 * **Aggregated Throughput:** Branches utilize the combined throughput of both connections, doubling file-transfer and backup speeds during peak operational hours.
