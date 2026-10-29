@@ -7,9 +7,15 @@ This engineering validation explores the underlying session distribution algorit
 
 **Round Robin SD-WAN Load Balancing: Please enlarge for clearer video**
 
+https://github.com/user-attachments/assets/c712f2bf-b5b2-4d1c-8195-2a56a72166f7
+
 **Source-Destination SD-WAN Load Balancing: Please enlarge for clearer video (single stream)**
 
+https://github.com/user-attachments/assets/80330c6c-9eee-4862-8f14-cb77a0d21306
+
 **Source-Destination SD-WAN Load Balancing: Please enlarge for clearer video (double stream)**
+
+https://github.com/user-attachments/assets/51b3ce9c-2db1-43a6-8795-dfb4797149be
 
 ---
 
