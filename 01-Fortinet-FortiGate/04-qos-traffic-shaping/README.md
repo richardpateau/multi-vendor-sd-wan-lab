@@ -9,6 +9,8 @@ Using Wireshark I/O graphing, kernel shaper statistics, and stateful session tab
 
 **Live QOS PCAP I/O Monitoring: Unshaped vs Shaped Traffic**
 
+https://github.com/user-attachments/assets/f4317ae5-a98f-454f-b6c7-e0343bcd3282
+
 ---
 
 ## Lab Architecture & Test Topology
