@@ -325,39 +325,57 @@ Packet captures taken on the transit underlay link proved complete payload prote
 
 ---
 
+Here is your updated **Evidence Index** reflecting all 24 cleaned file names in your `screenshots/` directory, along with the dedicated **Google Drive PCAP Download** section:
+
+---
+
+## Raw Packet Capture (PCAP) Download
+
+For deep-packet inspection in Wireshark, the raw capture trace containing the complete IKEv2 negotiation, ESP encapsulation, and ICMP overlay flow is hosted in Google Drive:
+
+📁 **[Open Google Drive IPsec SD-WAN PCAP Directory](https://drive.google.com/drive/folders/1XPGdyjsjweUtwI_gpUvKmUhVn-59oIsY?usp=sharing)**
+
+| Artifact | Location | Size / Type | What It Validates |
+| :--- | :--- | :--- | :--- |
+| **`sd-wan-vpn.pcap`** | [Google Drive Link](https://drive.google.com/drive/folders/1XPGdyjsjweUtwI_gpUvKmUhVn-59oIsY?usp=sharing) | 7 MB (`.pcap`) | Wire-level validation showing IKEv2 `IKE_SA_INIT` / `IKE_AUTH` handshakes (UDP 500) and transit ICMP packets encapsulated in IPsec ESP (Protocol 50). |
+
+> **Wireshark Display Filters:**
+> * IKE Negotiations: `_ws.col.protocol == "ISAKMP"`
+> * Encrypted Payload: `_ws.col.protocol == "ESP"`
+> * Encapsulation Comparison: `esp || icmp`
+
+---
+
 ## Evidence Index
 
 | Phase | Artifact / Screenshot | Purpose & Verification |
 | :--- | :--- | :--- |
-| **Phase 1: IKE Gateways** | `diagnose vpn ike gateway list HQ.png` | Confirms both IKEv2 gateways established on FortiGate HQ. |
-| **Phase 1: IKE Gateways** | `diagnose vpn ike gateway list branch.png` | Confirms IKEv2 gateways active on FortiGate Branch. |
-| **Phase 1: IKE Gateways** | `diagnose vpn ike gateway list BRANCH 1st VPN.png` | Detailed state for primary tunnel (`HQ-BRANCH-VPN` on `port2`). |
-| **Phase 1: IKE Gateways** | `diagnose vpn ike gateway list BRANCH 2nd VPN.png` | Detailed state for secondary tunnel (`HQ-BRANCH-VPN-2` on `port3`). |
-| **Phase 1: IPsec SAs** | `diagnose vpn ipsec status HQ .png` | Cryptographic engine statistics on HQ. |
-| **Phase 1: IPsec SAs** | `diagnose vpn ipsec status BRANCH.png` | Cryptographic engine statistics on Branch before test traffic. |
-| **Phase 1: IPsec SAs** | `diagnose vpn ipsec status BRANCH after traffic.png` | Confirms incrementing `des` and `sha256` encryption/decryption counters. |
-| **Phase 1: Tunnel Status** | `diagnose vpn tunnel list HQ.png` | Displays SPIs, lifetime, and crypto attributes for both tunnels on HQ. |
-| **Phase 1: Tunnel Status** | `diagnose vpn tunnel list BRANCH.png` | Displays SPIs, lifetime, and crypto attributes for both tunnels on Branch. |
-| **Phase 1: Tunnel Status** | `diagnose vpn tunnel list 1st VPN.png` | Specific tunnel list output for Tunnel 1. |
-| **Phase 1: Tunnel Status** | `diagnose vpn tunnel list 2nd VPN.png` | Specific tunnel list output for Tunnel 2. |
-| **Phase 1: Tunnel Status** | `diagnose vpn tunnel list 1st VPN encrypted packets going up after ping.png` | **Crucial Proof:** Shows `enc:pkts` rising from 92 to 110 after sending ping traffic. |
-| **Phase 2: Routing & Zones** | `show config sys sdwan config service.png` | SD-WAN Service Rule 5 (`HQ-to-Branch-VPN`) mapped to members 3 & 4. |
-| **Phase 2: Routing & Zones** | `diagnose sys sdwan member.png` | Confirms members 3 & 4 with flag `0xc` assigned to zone `VPN`. |
-| **Phase 2: Routing & Zones** | `diagnose sys sdwan service branch.png` | Overall SD-WAN service inventory on Branch. |
-| **Phase 2: Routing & Zones** | `diagnose sys sdwan service 5 HQ.png` | Verifies Rule 5 active on HQ with both overlay members selected. |
-| **Phase 2: Routing & Zones** | `diagnose sys sdwan service 5 BRANCH.png` | Verifies Rule 5 active on Branch with both overlay members selected. |
-| **Phase 2: Routing & Zones** | `show static routes VPN zone HQ.png` | Static route pointing `192.168.2.0/24` to `VPN` zone + floating blackhole. |
-| **Phase 2: Routing & Zones** | `show static routes VPN zone Branch.png` | Static route pointing `192.168.1.0/24` to `VPN` zone + floating blackhole. |
-| **Phase 2: Routing & Zones** | `get router info routing-table all HQ.png` | Kernel RIB on HQ showing ECMP static routes across both tunnels. |
-| **Phase 2: Routing & Zones** | `get router info routing-table all Branch .png` | Kernel RIB on Branch showing ECMP static routes across both tunnels. |
-| **Phase 2: Routing & Zones** | `get router info routing-table all.png` | Consolidated routing table view confirming tunnel next-hops. |
-| **Phase 2: Policies** | `show firewall policy HQ.png` | Zone-based firewall policies 10 and 11 referencing `srcintf/dstintf "VPN"`. |
-| **Phase 2: Policies** | `BRANCH.png` | Branch firewall policies confirming symmetrical zone-based security rules. |
-| **Phase 3: Validation** | `HQ NODE SENDING PING.png` | Client ping test (`192.168.1.10 -> 192.168.2.10`) with 0% packet loss. |
-| **Phase 3: Wireshark Proof** | `INIT AUTH PCAPS FOUND.png` | Packet capture of IKEv2 `IKE_SA_INIT` and `IKE_AUTH` exchanges on UDP 500. |
-| **Phase 3: Wireshark Proof** | `ESP PCAPs found overview.png` | Wireshark capture confirming transit traffic encapsulated in IP Protocol 50 (ESP). |
-| **Phase 3: Wireshark Proof** | `icmp and esp trailing proof of encryption.png` | **Smoking Gun:** Wireshark showing ICMP payload securely enveloped inside ESP. |
-| **Phase 3: Live Video** | `sd-wan-esp-pcap-2026-10-27_04.58.36.mp4` | Screen recording of the live ping stream, Wireshark ESP capture, and CLI tunnel statistics. |
+| **Phase 1: Architecture** | `screenshots/topology.png` | Network topology diagram showing HQ/Branch underlays, dual IPsec tunnels, and the `VPN` SD-WAN zone. |
+| **Phase 1: Cryptographic Setup** | `screenshots/show-phase-1-branch.png` | Displays Phase 1 interface definitions for `HQ-BRANCH-VPN` (`port2`) and `HQ-BRANCH-VPN-2` (`port3`). |
+| **Phase 1: Cryptographic Setup** | `screenshots/show-phase-2-branch.png` | Displays Phase 2 selector definitions (`192.168.1.0/24` <-> `192.168.2.0/24`) with `auto-negotiate enable`. |
+| **Phase 1: Tunnel Status** | `screenshots/diagnose-vpn-ike-1.png` | Confirms primary IKEv2 gateway (`HQ-BRANCH-VPN` via `port2`) is established. |
+| **Phase 1: Tunnel Status** | `screenshots/diagnose-vpn-ike-2.png` | Confirms secondary IKEv2 gateway (`HQ-BRANCH-VPN-2` via `port3`) is established. |
+| **Phase 1: Tunnel Status** | `screenshots/sd-wan-vpn.png` | Overview of active IPsec tunnels displaying SPIs, lifetime, and crypto algorithms. |
+| **Phase 2: SD-WAN Overlay** | `screenshots/show-vpn-zone.png` | CLI output confirming the creation of the dedicated SD-WAN zone named `VPN`. |
+| **Phase 2: SD-WAN Overlay** | `screenshots/show-members.png` | Displays SD-WAN member assignments adding both IPsec tunnels (members 3 & 4) to the `VPN` zone. |
+| **Phase 2: SD-WAN Overlay** | `screenshots/diagnose-sd-wan-member.png` | Member table (`diagnose sys sdwan member`) showing overlay members 3 & 4 with flag `0xc`. |
+| **Phase 2: Steering & Policies** | `screenshots/show-sd-wan-service.png` | SD-WAN service configuration showing Rule 5 (`HQ-to-Branch-VPN`) steering encrypted traffic. |
+| **Phase 2: Steering & Policies** | `screenshots/to-branch-service.png` | Shows Rule 5 mapping priority members 3 (`port2` tunnel) and 4 (`port3` tunnel). |
+| **Phase 2: Steering & Policies** | `screenshots/service-5.png` | Detailed CLI configuration showing rule parameters and destination subnet binding. |
+| **Phase 2: Steering & Policies** | `screenshots/diagnose-service-5.png` | Live service table (`diagnose sys sdwan service 5`) verifying Rule 5 is active with both tunnels selected. |
+| **Phase 2: Routing & Security** | `screenshots/show-router-static.png` | Static route pointing remote LAN to the `VPN` zone plus floating blackhole route (`distance 20`). |
+| **Phase 2: Routing & Security** | `screenshots/routing-table-all.png` | Kernel routing table (`get router info routing-table all`) showing active ECMP routes via both tunnels. |
+| **Phase 2: Routing & Security** | `screenshots/show-firewall-policy.png` | Zone-based security policies (Policies 10 & 11) permitting traffic between LAN (`port1`) and `VPN` zone. |
+| **Phase 3: Traffic & Encryption** | `screenshots/hq-ping-successful.png` | End-to-end ping verification from HQ Server to Branch Client (`192.168.2.10`) with 0% packet loss. |
+| **Phase 3: Traffic & Encryption** | `screenshots/encryption-goes-up-before.png` | Tunnel list diagnostic showing baseline encryption counter (`enc:pkts/bytes = 92/10304`). |
+| **Phase 3: Traffic & Encryption** | `screenshots/encryption-goes-up-after.png` | **Crucial Proof:** Shows encryption counters incrementing (`enc:pkts/bytes = 110/12320`) after test traffic. |
+| **Phase 3: Traffic & Encryption** | `screenshots/encryption-before-after.png` | Side-by-side comparison proving real-time cryptographic processing across the tunnel. |
+| **Phase 3: Traffic & Encryption** | `screenshots/diagnose-vpn-ipsec-after.png` | Software crypto telemetry (`diagnose vpn ipsec status`) showing incremented `des` and `sha256` counts. |
+| **Phase 4: Wireshark Proof** | `screenshots/wireshark-init-auth.png` | Packet capture showing IKEv2 Phase 1 `IKE_SA_INIT` and `IKE_AUTH` negotiations on UDP 500. |
+| **Phase 4: Wireshark Proof** | `screenshots/wireshark-esp.png` | Packet capture confirming all payload frames are encapsulated in IP Protocol 50 (ESP). |
+| **Phase 4: Wireshark Proof** | `screenshots/wireshark-icmp-esp.png` | **Smoking Gun:** Side-by-side capture proving cleartext ICMP is fully enveloped inside ESP on the wire. |
+| **Live Video Recording** | `sd-wan-esp-pcap-2026-10-27_04.58.36.mp4` | Screen recording capturing live ping traffic, real-time Wireshark ESP frames, and CLI tunnel counters. |
+| **Operational Runbook** | `runbook` | Standard Operating Procedure (SOP) containing commands for IKE resets, SA queries, and zone failover tests. |
 
 ---
 
