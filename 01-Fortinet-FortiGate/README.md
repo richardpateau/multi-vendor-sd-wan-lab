@@ -1,9 +1,3 @@
-Here is the complete, professional, portfolio-grade **`README.md`** for your root **`01-Fortinet-FortiGate`** directory. 
-
-This version reflects all **7 real-world projects**, uses your exact directory names (`01-sla-based-failover` through `07-advpn-dynamic-shortcuts`), maps all artifacts, embeds the Google Drive PCAP links, and eliminates code-block clutter in body text while keeping commands and tables clean.
-
----
-
 # Module 1: Fortinet FortiGate SD-WAN & Secure Multi-Path Fabrics
 
 An end-to-end, multi-site enterprise SD-WAN fabric deployed on FortiGate-VMs running FortiOS. This module progresses systematically from baseline underlay SLA steering to **intent-based SaaS steering, active/active session balancing, deterministic QoS rate shaping, multi-path IPsec overlays, composite VoIP SLA remediation, and dynamic spoke-to-spoke Auto-Discovery VPN (ADVPN)**.
