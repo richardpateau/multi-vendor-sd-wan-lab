@@ -35,10 +35,10 @@ Key capabilities engineered and validated in this project:
 #### 1. The Dynamic Parent-Child Dialup Model
 In standard site-to-site IPsec VPNs, tunnels require static peer IP addresses (`remote-gw`). Because our Hub must terminate dozens of remote branches dynamically across multiple underlays without pre-defining individual Phase 1 tunnels for every spoke, the Hub deploys **Dynamic Dialup Parent Tunnels**:
 
-* **Parent Interface (`type dynamic`, `net-device disable`):** 
+* **Parent Interface (type dynamic, net-device disable):** 
   * Acts as a listening template on each physical WAN interface:
-    * `ADVPN-MPLS` bound to `port2` (`10.0.1.2`)
-    * `ADVPN-BROADBAND` bound to `port3` (`10.0.2.2`)
+    * ADVPN-MPLS bound to port2 (10.0.1.2)
+    * ADVPN-BROADBAND bound to port3 (10.0.2.2)
 * **Child Dynamic Instances (`dial_inst`):**
   * When a Spoke initiates an IKEv2 negotiation, FortiOS spawns a unique, indexed child instance (e.g., `ADVPN-MPLS_0`, `ADVPN-MPLS_1`, `ADVPN-BROADBAND_0`) bound to that specific spoke's underlay IP and overlay tunnel ID.
   * Setting `auto-discovery-sender enable` arms the parent template so that when inter-spoke transit traffic hits the Hub, the kernel sends an **NHRP Redirect** back to the initiator.
@@ -143,15 +143,15 @@ npu_flag=00 npu_rgwy=10.0.2.10 npu_lgwy=10.0.2.2 npu_selid=3 dec_npuid=0 enc_npu
 
 #### 3. Wire-Level Ingress Telemetry: Parent Tunnels in Action
 
-Packet captures taken at the Hub verify both underlays actively receiving encapsulated traffic from Spoke 2 (`Branch-2`):
+Packet captures taken at the Hub verify both underlays actively receiving encapsulated traffic from Spoke 2 (Branch-2):
 
-##### A. Parent MPLS Underlay (`port2` / `10.0.1.2`):
+##### A. Parent MPLS Underlay (port2 / 10.0.1.2):
 * **Wireshark Filter:** `(ip.src == 10.0.1.10) && (ip.dst == 10.0.1.2)`
 * Captures continuous ESP (Protocol 50) packets arriving at HQ `port2` from Spoke 2 over the MPLS core.
 
 ![sd-wan](screenshots/wireshark-esp-hq-branch-2.png)
 
-##### B. Parent Broadband Underlay (`port3` / `10.0.2.2`):
+##### B. Parent Broadband Underlay (port3 / 10.0.2.2):
 * **Wireshark Filter:** `(ip.src == 10.0.2.10) && (ip.dst == 10.0.2.2)`
 * Captures parallel ESP (Protocol 50) packets arriving at HQ `port3` from Spoke 2 over the Broadband core, proving simultaneous multi-underlay tunnel health and routing readiness.
 
@@ -318,7 +318,6 @@ Members(2):
 Dst address(1):
         10.20.20.0-10.20.20.255
 ```
-![sd-wan](screenshots/diagnose-service-1.png)
 
 ---
 
@@ -326,7 +325,7 @@ Dst address(1):
 
 1. **End-to-End ICMP Reachability from `Branch-2-PC`:**
    ```bash
-   localhost:~# ping 10.10.10.10 -c 5
+   localhost:~# ping 10.10.10.10 
    PING 10.10.10.10 (10.10.10.10): 56 data bytes
    64 bytes from 10.10.10.10: seq=0 ttl=62 time=19.465 ms
    64 bytes from 10.10.10.10: seq=1 ttl=62 time=19.569 ms
@@ -340,8 +339,8 @@ Dst address(1):
    ```
 ![sd-wan](screenshots/ping-success-branch-2-to-hq.png)
 
-2. **Data Plane Wire Sniffer Proof (`diagnose sniffer packet`):**
-   Sniffing ICMP frames on `Fortinet-Branch-2` confirms that traffic destined for `10.10.10.10` is strictly forwarded out of **`ADVPN-MPLS`** (Member 3) in compliance with Service Rule 1:
+2. **Data Plane Wire Sniffer Proof (diagnose sniffer packet):**
+   Sniffing ICMP frames on `Fortinet-Branch-2` confirms that traffic destined for **10.10.10.10** is strictly forwarded out of **ADVPN-MPLS** (Member 3) in compliance with Service Rule 1:
    ```text
    FortiGate-VM64-KVM # diagnose sniffer packet any "icmp" 4
    ...
@@ -354,9 +353,9 @@ Dst address(1):
 
 ---
 
-#### Verification 2: Branch 2 to Branch 1 Target (`10.20.20.10`) over Broadband
+#### Verification 2: Branch 2 to Branch 1 Target (10.20.20.10) over Broadband
 
-1. **End-to-End ICMP Reachability from `Branch-2-PC`:**
+1. **End-to-End ICMP Reachability from Branch-2-PC:**
    ```bash
    localhost:~# ping 10.20.20.1 -c 6
    PING 10.20.20.1 (10.20.20.1): 56 data bytes
@@ -373,8 +372,8 @@ Dst address(1):
    ```
 ![sd-wan](screenshots/ping-success-branch2-to-1.png)
 
-2. **Data Plane Wire Sniffer Proof (`diagnose sniffer packet`):**
-   Sniffing ICMP frames on `Fortinet-Branch-2` confirms that traffic destined for `10.20.20.1` / `10.20.20.10` is steered out of **`ADVPN-BROADBAND`** (Member 4) in compliance with Service Rule 2:
+2. **Data Plane Wire Sniffer Proof (diagnose sniffer packet):**
+   Sniffing ICMP frames on `Fortinet-Branch-2` confirms that traffic destined for `10.20.20.1` / `10.20.20.10` is steered out of **ADVPN-BROADBAND** (Member 4) in compliance with Service Rule 2:
    ```text
    FortiGate-VM64-KVM # diagnose sniffer packet any "icmp" 4
    ...
@@ -395,8 +394,8 @@ Dst address(1):
 #### 3. Summary of Multi-Path Traffic Steering
 | Source Node | Destination Target | Preferred SD-WAN Service | Active Egress Interface | Transport Circuit | Result |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Branch-2-PC** (`10.30.30.10`) | **HQ-Server** (`10.10.10.10`) | Rule 1 (`HQ-TRAFFIC`) | `ADVPN-MPLS` (Member 3) | `ISP-A` MPLS Core | **0% Loss**, ~19 ms RTT |
-| **Branch-2-PC** (`10.30.30.10`) | **Branch-1-Client** (`10.20.20.10`) | Rule 2 (`BRANCH1-TRAFFIC`) | `ADVPN-BROADBAND` (Member 4) | `ISP-B` Broadband Core | **0% Loss**, ~42 ms RTT |
+| **Branch-2-PC** (10.30.30.1) | **HQ-Server** (10.10.10.10) | Rule 1 (HQ-TRAFFIC) | ADVPN-MPLS (Member 3) | ISP-A MPLS Core | **0% Loss**, ~19 ms RTT |
+| **Branch-2-PC** (10.30.30.10) | **Branch-1-Client** (10.20.20.10) | Rule 2 (BRANCH1-TRAFFIC) | ADVPN-BROADBAND (Member 4) | ISP-B Broadband Core | **0% Loss**, ~42 ms RTT |
 ---
 
 ## Verification & Execution Lifecycle
@@ -441,16 +440,13 @@ Total number of neighbors 4
 ![sd-wan](screenshots/get-router-info-bgp-network-branch-2.png)
 
 ---
-Here is a dedicated, production-grade section detailing **Fortinet-HQ establishing BGP neighbor adjacencies across all four overlay tunnel interfaces**, complete with the exact CLI outputs, neighbor attributes, and screenshot mappings.
-
----
 
 ### Hub (HQ) BGP Route Reflector Neighbor Adjacency Across All Overlay Tunnels
 
 #### Dynamic Neighbor Group Architecture
 Rather than hardcoding individual point-to-point BGP peers for every branch, **Fortinet-HQ** is configured with **BGP Dynamic Neighbor Ranges** bound to dedicated peer groups:
-* **`MPLS-SPOKES` (`10.255.1.0/24`):** Listens for incoming iBGP peering requests across the primary MPLS overlay (`ADVPN-MPLS`).
-* **`BROADBAND-SPOKES` (`10.255.2.0/24`):** Listens for incoming iBGP peering requests across the secondary Broadband overlay (`ADVPN-BROADBAND`).
+* **MPLS-SPOKES (10.255.1.0/24):** Listens for incoming iBGP peering requests across the primary MPLS overlay (ADVPN-MPLS).
+* **BROADBAND-SPOKES (10.255.2.0/24):** Listens for incoming iBGP peering requests across the secondary Broadband overlay (ADVPN-BROADBAND).
 
 Both groups have `route-reflector-client enable` and `additional-path both` configured, allowing the Hub to reflect Spoke 1 and Spoke 2 routes back to each other across both transport circuits simultaneously.
 
@@ -459,18 +455,18 @@ Both groups have `route-reflector-client enable` and `additional-path both` conf
 #### Comprehensive BGP Neighbor Adjacency Matrix
 | Neighbor IP | Overlay Tunnel | Remote Site | Remote Router ID | Peer-Group Member | BGP State | Prefix Accepted / Announced |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`10.255.1.2`** | `ADVPN-MPLS` | **Branch 1** | `2.2.2.2` | `MPLS-SPOKES` | **Established** | 1 accepted / 2 announced |
-| **`10.255.1.3`** | `ADVPN-MPLS` | **Branch 2** | `3.3.3.3` | `MPLS-SPOKES` | **Established** | 1 accepted / 2 announced |
-| **`10.255.2.2`** | `ADVPN-BROADBAND` | **Branch 1** | `2.2.2.2` | `BROADBAND-SPOKES` | **Established** | 1 accepted / 3 announced |
-| **`10.255.2.3`** | `ADVPN-BROADBAND` | **Branch 2** | `3.3.3.3` | `BROADBAND-SPOKES` | **Established** | 1 accepted / 3 announced |
+| **`10.255.1.2`** | ADVPN-MPLS | **Branch 1** | 2.2.2.2 | MPLS-SPOKES | **Established** | 1 accepted / 2 announced |
+| **`10.255.1.3`** | ADVPN-MPLS | **Branch 2** | 3.3.3.3 | MPLS-SPOKES | **Established** | 1 accepted / 2 announced |
+| **`10.255.2.2`** | ADVPN-BROADBAND | **Branch 1** | 2.2.2.2 | BROADBAND-SPOKES | **Established** | 1 accepted / 3 announced |
+| **`10.255.2.3`** | ADVPN-BROADBAND | **Branch 2** | 3.3.3.3 | BROADBAND-SPOKES | **Established** | 1 accepted / 3 announced |
 
 ---
 
 #### Deep-Dive Neighbor Telemetry & State Verification
 
-##### A. Neighbor `10.255.1.2` — Spoke 1 over MPLS
-* **Remote Router ID:** `2.2.2.2` (AS 65000)
-* **Status:** `Established`, Route-Reflector Client
+##### A. Neighbor 10.255.1.2 — Spoke 1 over MPLS
+* **Remote Router ID:** 2.2.2.2 (AS 65000)
+* **Status:** Established, Route-Reflector Client
 
 ![sd-wan](screenshots/bgp-neighbor-10.255.1.2.png)
 
@@ -478,9 +474,9 @@ Both groups have `route-reflector-client enable` and `additional-path both` conf
 
 ---
 
-##### B. Neighbor `10.255.1.3` — Spoke 2 over MPLS
-* **Remote Router ID:** `3.3.3.3` (AS 65000)
-* **Status:** `Established`, Route-Reflector Client
+##### B. Neighbor 10.255.1.3 — Spoke 2 over MPLS
+* **Remote Router ID:** 3.3.3.3 (AS 65000)
+* **Status:** Established, Route-Reflector Client
 
 ![sd-wan](screenshots/bgp-neighbor-10.255.1.3.png)
 
@@ -488,9 +484,9 @@ Both groups have `route-reflector-client enable` and `additional-path both` conf
 
 ---
 
-##### C. Neighbor `10.255.2.2` — Spoke 1 over Broadband
-* **Remote Router ID:** `2.2.2.2` (AS 65000)
-* **Status:** `Established`, Route-Reflector Client
+##### C. Neighbor 10.255.2.2 — Spoke 1 over Broadband
+* **Remote Router ID:** 2.2.2.2 (AS 65000)
+* **Status:** Established, Route-Reflector Client
 
 ![sd-wan](screenshots/bgp-neighbor-10.255.2.2.png)
 
@@ -498,9 +494,9 @@ Both groups have `route-reflector-client enable` and `additional-path both` conf
 
 ---
 
-##### D. Neighbor `10.255.2.3` — Spoke 2 over Broadband
-* **Remote Router ID:** `3.3.3.3` (AS 65000)
-* **Status:** `Established`, Route-Reflector Client
+##### D. Neighbor 10.255.2.3 — Spoke 2 over Broadband
+* **Remote Router ID:** 3.3.3.3 (AS 65000)
+* **Status:** Established, Route-Reflector Client
 
 ![sd-wan](screenshots/bgp-neighbor-10.255.2.3.png)
 
@@ -509,22 +505,24 @@ Both groups have `route-reflector-client enable` and `additional-path both` conf
 ---
 
 1. **Zero Spoke-to-Spoke Peering:** Neither Branch 1 nor Branch 2 needs to peer with one another. The Hub reflects prefixes to each spoke with the **original spoke's next-hop preserved**.
-2. **Dual-Transport Multipath:** Because both `MPLS-SPOKES` and `BROADBAND-SPOKES` peer groups are active, each spoke learns two valid paths for every remote subnet (`10.255.1.x` and `10.255.2.x`), feeding FortiOS SD-WAN with real-time candidate paths.
-3. **BGP Additional-Path Preservation:** By setting `additional-path-select 4`, FortiGate ensures that backup paths are not suppressed by BGP best-path selection at the Hub, giving the Spokes visibility into all underlays for instant failover.
+2. **Dual-Transport Multipath:** Because both MPLS-SPOKES and BROADBAND-SPOKES peer groups are active, each spoke learns two valid paths for every remote subnet (10.255.1.x and 10.255.2.x), feeding FortiOS SD-WAN with real-time candidate paths.
+3. **BGP Additional-Path Preservation:** By setting additional-path-select 4, FortiGate ensures that backup paths are not suppressed by BGP best-path selection at the Hub, giving the Spokes visibility into all underlays for instant failover.
+
+---
 
 ### Phase 2: Dynamic Shortcut Sequence 
 
-When `Branch-2-PC` (`10.30.30.10`) initiated an ICMP stream targeting `Branch-1-Client` (`10.20.20.10`), the FortiOS ADVPN engine executed the following sequence:
+When Branch-2-PC (10.30.30.10) initiated an ICMP stream targeting Branch-1-Client (10.20.20.10), the FortiOS ADVPN engine executed the following sequence:
 
 ![sd-wan](screenshots/ping-success-branch2-to-1.png)
 
-1. **First Packet Egress:** Routed through the Hub via `ADVPN-MPLS` (`10.0.1.2`).
+1. **First Packet Egress:** Routed through the Hub via ADVPN-MPLS (10.0.1.2).
 
 ![sd-wan](screenshots/port-1-to-vpn-mpls-branch-2.png)
 
 2. **NHRP Redirect Trigger:** The Hub detected that ingress and egress interfaces were both in the ADVPN domain and transmitted an NHRP redirect to Branch 2.
 3. **Dynamic IKEv2 Shortcut Negotiation:**
-   Branch 2 (`10.0.1.10`) immediately contacted Branch 1 (`10.0.1.6`) directly over UDP 500, performing an on-demand IKEv2 handshake across the MPLS underlay.
+   Branch 2 (10.0.1.10) immediately contacted Branch 1 (10.0.1.6) directly over UDP 500, performing an on-demand IKEv2 handshake across the MPLS underlay.
    
 4. **Child Shortcut Instantiation:**
    Inspecting the kernel tunnel table on Branch 2 revealed the dynamically spawned shortcut tunnel interface:
@@ -541,8 +539,8 @@ When `Branch-2-PC` (`10.30.30.10`) initiated an ICMP stream targeting `Branch-1-
      enc: spi=afc825fb esp=des key=8
      dec:pkts/bytes=982/82488, enc:pkts/bytes=984/110208
    ```
-   * *Notice `mode=dial_inst/3` and `parent=ADVPN-MPLS`: This is an on-demand, ephemeral tunnel directly connecting Branch 2 to Branch 1.*
-   * *The encrypted packet counter incremented in real-time from `964` to `984` packets.*
+   * Notice mode=dial_inst/3 and parent=ADVPN-MPLS: This is an on-demand, ephemeral tunnel directly connecting Branch 2 to Branch 1.
+   * The encrypted packet counter incremented in real-time from 964 to 984 packets.
 
 ![sd-wan](screenshots/diagnose-vpn-branch-2-to-branch-1-964.png)
 
@@ -557,7 +555,7 @@ When `Branch-2-PC` (`10.30.30.10`) initiated an ICMP stream targeting `Branch-1-
     3  10.255.1.2 (10.255.1.2)     37.154 ms
     4  10.20.20.10 (10.20.20.10)   36.338 ms
    ```
-   *Subsequent packets bypassed hop 2 (`10.255.1.254`) entirely, routing over the direct shortcut.*
+   *Subsequent packets bypassed hop 2 (10.255.1.254) entirely, routing over the direct shortcut.*
 
 ![sd-wan](screenshots/traceroute-branch-2-to-1-before.png)
 
@@ -571,16 +569,17 @@ When `Branch-2-PC` (`10.30.30.10`) initiated an ICMP stream targeting `Branch-1-
 
 Captures taken on the physical WAN segment confirmed direct spoke-to-spoke cryptographic exchange:
 
-1. **Direct IKEv2 Shortcut Handshake (`_ws.col.protocol == "ISAKMP"`):**
+1. **Direct IKEv2 Shortcut Handshake:**
    * Filter: `(ip.src == 10.0.1.10) && (ip.dst == 10.0.1.6)`
-   * Captured `IKE_SA_INIT` and `IKE_AUTH` requests originating from Branch 2 (`10.0.1.10`) targeting Branch 1 (`10.0.1.6`) directly over UDP 500.
+   * Captured IKE_SA_INIT and IKE_AUTH requests originating from Branch 2 (10.0.1.10) targeting Branch 1 (10.0.1.6) directly over UDP 500.
    
 ![sd-wan](screenshots/dynamic-tunnel-branch-2.png)
    
 ![sd-wan](screenshots/dynamic-tunnel-branch-1.png)
 
-2. **Direct ESP Encapsulation (`_ws.col.protocol == "ESP"`):**
-   * Captured continuous IP Protocol 50 frames with `SPI=0xafc825fb` passing between `10.0.1.10 ↔ 10.0.1.6` with zero Hub IP headers involved.
+2. **Direct ESP Encapsulation:**
+   * Filter: `_ws.col.protocol == "ESP"`
+   * Captured continuous IP Protocol 50 frames with SPI 0xafc825fb passing between 10.0.1.10 ↔ 10.0.1.6 with zero Hub IP headers involved.
 
 **Source: 10.0.1.6 (BRANCH1) Destination: 10.0.1.10 (BRANCH2)**
 
@@ -592,14 +591,10 @@ Captures taken on the physical WAN segment confirmed direct spoke-to-spoke crypt
 
 ---
 
-Here is the updated, technically accurate replacement for **Phase 4**, directly integrating your terminal screenshots and matching the exact artifact names from your file tree:
-
----
-
 ### Phase 4: Intentional Underlay Circuit Failure & SD-WAN Reroute
-To test automated self-healing across the overlay fabric, interface `FastEthernet4/0` on the Broadband core router (`ISP-B`) was administratively shut down:
+To test automated self-healing across the overlay fabric, interface FastEthernet4/0 on the Broadband core router (ISP-B) was administratively shut down:
 
-1. **Failure Injection on Provider Router (`ISP-B`):**
+1. **Failure Injection on Provider Router (ISP-B):**
    ```cisco
    ISP-B(config)# interface FastEthernet4/0
    ISP-B(config-if)# shutdown
@@ -609,7 +604,7 @@ To test automated self-healing across the overlay fabric, interface `FastEtherne
 ![sd-wan](screenshots/branch-1-to-2-intentional-failure.png)
 
 2. **SD-WAN Health-Check Detection & Dead State Transition:**
-   Within 3 consecutive probe intervals (15 seconds), the `ADVPN_HEALTH` monitor detected total loss on `Seq(4 ADVPN-BROADBAND)` and transitioned it to `state(dead)`:
+   Within 3 consecutive probe intervals (15 seconds), the ADVPN_HEALTH monitor detected total loss on Seq(4 ADVPN-BROADBAND) and transitioned it to state(dead):
    ```text
    FortiGate-VM64-KVM # diagnose sys sdwan health-check
    Health Check(ADVPN_HEALTH):
@@ -619,7 +614,7 @@ To test automated self-healing across the overlay fabric, interface `FastEtherne
 ![sd-wan](screenshots/branch-2-to-branch-1-health-check.png)
 
 3. **Dynamic SD-WAN Service Rule 2 Failover:**
-   Prior to the link cut, Service Rule 2 (`BRANCH1-TRAFFIC` to `10.20.20.0/24`) preferred Member 4 (`ADVPN-BROADBAND`) due to `cfg_order(0)`. Upon health-check failure, the rule immediately demoted the dead member and promoted Member 3 (`ADVPN-MPLS`) to active forwarding:
+   Prior to the link cut, Service Rule 2 (BRANCH1-TRAFFIC to 10.20.20.0/24) preferred Member 4 (ADVPN-BROADBAND) due to cfg_order(0). Upon health-check failure, the rule immediately demoted the dead member and promoted Member 3 (ADVPN-MPLS) to active forwarding:
    ```text
    FortiGate-VM64-KVM # diagnose sys sdwan service 2
 
@@ -635,7 +630,7 @@ To test automated self-healing across the overlay fabric, interface `FastEtherne
 ![sd-wan](screenshots/branch-2-to-1-diagnose-service.png)
  
 4. **Data Plane Path Verification Post-Failover (Traceroute):**
-   Executing a traceroute from `Branch-2-PC` (`10.30.30.10`) to `Branch-1-Client` (`10.20.20.10`) confirms the data plane shifted to the surviving MPLS tunnel (`10.255.1.254` / `10.255.1.2`), maintaining connectivity across the surviving path:
+   Executing a traceroute from Branch-2-PC (10.30.30.10) to Branch-1-Client (10.20.20.10) confirms the data plane shifted to the surviving MPLS tunnel (10.255.1.254 / 10.255.1.2), maintaining connectivity across the surviving path:
    ```bash
    localhost:~# traceroute 10.20.20.10
    traceroute to 10.20.20.10 (10.20.20.10), 30 hops max, 46 byte packets
@@ -660,10 +655,10 @@ For deep-packet inspection in Wireshark, the raw capture files documenting the e
 
 | Artifact / PCAP File | Location | Size | What It Validates |
 | :--- | :--- | :--- | :--- |
-| **`branch-1-dynamic-tunnel-creation.pcapng`** | [Google Drive Link](https://drive.google.com/drive/folders/1H6k7S5ta2FrdIq20pBEoN_4-FmHGTUGh?usp=sharing) | 1.2 MB | Spoke 1 perspective: Captures initial NHRP redirect arrival, subsequent direct `IKE_SA_INIT` / `IKE_AUTH` exchange with Spoke 2 over UDP 500, and initial ESP frames. |
-| **`branch-2-dynamic-tunnel-creation.pcapng`** | [Google Drive Link](https://drive.google.com/drive/folders/1H6k7S5ta2FrdIq20pBEoN_4-FmHGTUGh?usp=sharing) | 1.1 MB | Spoke 2 perspective: Wire trace of on-demand shortcut establishment directly targeting Spoke 1 (`10.0.1.6`), confirming zero Hub data-plane dependency. |
-| **`branch-2-port-2.pcapng`** | [Google Drive Link](https://drive.google.com/drive/folders/1H6k7S5ta2FrdIq20pBEoN_4-FmHGTUGh?usp=sharing) | 227 KB | Wire-level capture on `port2` (MPLS) confirming direct IPsec ESP packets (`10.0.1.10 ↔ 10.0.1.6` / `10.0.1.2`). |
-| **`branch-2-port-3.pcapng`** | [Google Drive Link](https://drive.google.com/drive/folders/1H6k7S5ta2FrdIq20pBEoN_4-FmHGTUGh?usp=sharing) | 206 KB | Wire-level capture on `port3` (Broadband) verifying parallel health-checks and dynamic steering over `10.0.2.10 ↔ 10.0.2.2`. |
+| `branch-1-dynamic-tunnel-creation.pcapng` | [Google Drive Link](https://drive.google.com/drive/folders/1H6k7S5ta2FrdIq20pBEoN_4-FmHGTUGh?usp=sharing) | 1.2 MB | Spoke 1 perspective: Captures initial NHRP redirect arrival, subsequent direct IKE_SA_INIT / IKE_AUTH exchange with Spoke 2 over UDP 500, and initial ESP frames. |
+| `branch-2-dynamic-tunnel-creation.pcapng` | [Google Drive Link](https://drive.google.com/drive/folders/1H6k7S5ta2FrdIq20pBEoN_4-FmHGTUGh?usp=sharing) | 1.1 MB | Spoke 2 perspective: Wire trace of on-demand shortcut establishment directly targeting Spoke 1 (10.0.1.6), confirming zero Hub data-plane dependency. |
+| `branch-2-port-2.pcapng` | [Google Drive Link](https://drive.google.com/drive/folders/1H6k7S5ta2FrdIq20pBEoN_4-FmHGTUGh?usp=sharing) | 227 KB | Wire-level capture on port2 (MPLS) confirming direct IPsec ESP packets (10.0.1.10 ↔ 10.0.1.6 / 10.0.1.2). |
+| `branch-2-port-3.pcapng` | [Google Drive Link](https://drive.google.com/drive/folders/1H6k7S5ta2FrdIq20pBEoN_4-FmHGTUGh?usp=sharing) | 206 KB | Wire-level capture on port3 (Broadband) verifying parallel health-checks and dynamic steering over 10.0.2.10 ↔ 10.0.2.2. |
 
 > **Wireshark Display Filters:**
 > * Direct IKE Negotiations: `(_ws.col.protocol == "ISAKMP") && (ip.addr == 10.0.1.10 && ip.addr == 10.0.1.6)`
@@ -677,27 +672,27 @@ For deep-packet inspection in Wireshark, the raw capture files documenting the e
 | Phase / Category | Artifact (`screenshots/`) | Purpose & Technical Verification |
 | :--- | :--- | :--- |
 | **Topology** | `advpn-topology.png` | Network diagram showing Hub, dual Spokes, dual underlays (MPLS & Broadband), and dynamic shortcut paths. |
-| **HQ Configuration** | `hq-phase-1-interface.png` | Hub Phase 1 configuration showing dynamic dialup templates with `auto-discovery-sender enable`. |
-| **HQ Configuration** | `hq-phase-2-interface.png` | Hub Phase 2 interface configuration for `ADVPN-MPLS` and `ADVPN-BROADBAND`. |
-| **HQ Configuration** | `config-router-bgp-show-hq.png` | Hub BGP Route Reflector configuration (`neighbor-groups`, `additional-path both`, and network statements). |
-| **Spoke Configuration** | `branch-phase-1-interface.png` | Spoke Phase 1 configuration with `auto-discovery-receiver enable` and `remote-gw` set to Hub. |
-| **Spoke Configuration** | `config-health-check-show-branch.png` | SD-WAN health check configuration (`ADVPN_HEALTH`) monitoring Hub over both overlays. |
+| **HQ Configuration** | `hq-phase-1-interface.png` | Hub Phase 1 configuration showing dynamic dialup templates with auto-discovery-sender enable. |
+| **HQ Configuration** | `hq-phase-2-interface.png` | Hub Phase 2 interface configuration for ADVPN-MPLS and ADVPN-BROADBAND. |
+| **HQ Configuration** | `config-router-bgp-show-hq.png` | Hub BGP Route Reflector configuration (neighbor-groups, additional-path both, and network statements). |
+| **Spoke Configuration** | `branch-phase-1-interface.png` | Spoke Phase 1 configuration with auto-discovery-receiver enable and remote-gw set to Hub. |
+| **Spoke Configuration** | `config-health-check-show-branch.png` | SD-WAN health check configuration (ADVPN_HEALTH) monitoring Hub over both overlays. |
 | **Spoke Configuration** | `config-service-show-branch.png` | SD-WAN Service Rules 1 & 2 enforcing prioritized path selection to HQ and peer spokes. |
 | **Spoke Configuration** | `SD WAN SERVICE 8 and 9 show BRANCH1.png` | Spoke 1 service rules showing traffic priority steering. |
 | **Spoke Configuration** | `SD WAN SERVICE BRANCH2.png` | Spoke 2 service rules overview in FortiOS CLI. |
 | **Spoke Configuration** | `port-1-to-vpn-mpls-branch-2.png` | Confirms internal LAN binding and egress routing mappings on Spoke 2. |
 | **Tunnel Overview** | `sd-wan-tunnel.png` | Overview of active IPsec tunnel instances and parent interfaces. |
-| **Hub Tunnels (Spoke 1)** | `diagnose-vpn-list-hq-1.6.png` | Hub tunnel list output for Spoke 1 MPLS child instance (`10.0.1.6`). |
-| **Hub Tunnels (Spoke 1)** | `diagnose-vpn-list-hq-2.6.png` | Hub tunnel list output for Spoke 1 Broadband child instance (`10.0.2.6`). |
-| **Hub Tunnels (Spoke 2)** | `diagnose-vpn-list-hq-1.10.png` | Hub tunnel list output for Spoke 2 MPLS child instance (`10.0.1.10`). |
-| **Hub Tunnels (Spoke 2)** | `diagnose-vpn-list-hq-2.10.png` | Hub tunnel list output for Spoke 2 Broadband child instance (`10.0.2.10`). |
+| **Hub Tunnels (Spoke 1)** | `diagnose-vpn-list-hq-1.6.png` | Hub tunnel list output for Spoke 1 MPLS child instance (10.0.1.6). |
+| **Hub Tunnels (Spoke 1)** | `diagnose-vpn-list-hq-2.6.png` | Hub tunnel list output for Spoke 1 Broadband child instance (10.0.2.6). |
+| **Hub Tunnels (Spoke 2)** | `diagnose-vpn-list-hq-1.10.png` | Hub tunnel list output for Spoke 2 MPLS child instance (10.0.1.10). |
+| **Hub Tunnels (Spoke 2)** | `diagnose-vpn-list-hq-2.10.png` | Hub tunnel list output for Spoke 2 Broadband child instance (10.0.2.10). |
 | **BGP Summary** | `get-router-info-bgp-summary-hq.png` | Hub BGP summary verifying 4 established iBGP neighbors (2 spokes × 2 transport circuits). |
-| **BGP Summary** | `get router info bgp summary BRANCH1.png` | Spoke 1 BGP summary confirming dual peering sessions to Hub (`10.255.1.254` & `10.255.2.254`). |
-| **BGP Summary** | `get router info bgp summary BRANCH2.png` | Spoke 2 BGP summary confirming dual peering sessions to Hub (`10.255.1.254` & `10.255.2.254`). |
-| **BGP Neighbor Telemetry**| `bgp-neighbor-10.255.1.2.png` | Detailed neighbor output for Spoke 1 MPLS (`10.255.1.2`), confirming Route-Reflector Client status. |
-| **BGP Neighbor Telemetry**| `bgp-neighbor-10.255.1.3.png` | Detailed neighbor output for Spoke 2 MPLS (`10.255.1.3`), confirming Route-Reflector Client status. |
-| **BGP Neighbor Telemetry**| `bgp-neighbor-10.255.2.2.png` | Detailed neighbor output for Spoke 1 Broadband (`10.255.2.2`), confirming Route-Reflector Client status. |
-| **BGP Neighbor Telemetry**| `bgp-neighbor-10.255.2.3.png` | Detailed neighbor output for Spoke 2 Broadband (`10.255.2.3`), confirming Route-Reflector Client status. |
+| **BGP Summary** | `get router info bgp summary BRANCH1.png` | Spoke 1 BGP summary confirming dual peering sessions to Hub (10.255.1.254 & 10.255.2.254). |
+| **BGP Summary** | `get router info bgp summary BRANCH2.png` | Spoke 2 BGP summary confirming dual peering sessions to Hub (10.255.1.254 & 10.255.2.254). |
+| **BGP Neighbor Telemetry**| `bgp-neighbor-10.255.1.2.png` | Detailed neighbor output for Spoke 1 MPLS (10.255.1.2), confirming Route-Reflector Client status. |
+| **BGP Neighbor Telemetry**| `bgp-neighbor-10.255.1.3.png` | Detailed neighbor output for Spoke 2 MPLS (10.255.1.3), confirming Route-Reflector Client status. |
+| **BGP Neighbor Telemetry**| `bgp-neighbor-10.255.2.2.png` | Detailed neighbor output for Spoke 1 Broadband (10.255.2.2), confirming Route-Reflector Client status. |
+| **BGP Neighbor Telemetry**| `bgp-neighbor-10.255.2.3.png` | Detailed neighbor output for Spoke 2 Broadband (10.255.2.3), confirming Route-Reflector Client status. |
 
 ---
 
