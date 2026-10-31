@@ -708,7 +708,7 @@ To test automated self-healing across the overlay fabric, interface `FastEtherne
 | **Dynamic Tunnel Handshake** | `DYNAMIC TUNNEL TEST BRANCH 2 init auth packets .png` | Wire capture of IKE Phase 1 handshake negotiated directly on Branch 2. |
 | **Encryption Proof** | `ENCYPTED PKT TEST BRANCH2 PC pinging BRANCH1.png` | Wireshark capture of live encrypted traffic flow between branches. |
 | **Encryption Proof** | `ENCYPTED PKT TEST BRANCH2 to 1 964 packets.png` | Baseline tunnel counter on shortcut tunnel showing 964 encrypted packets. |
-| **Encryption Proof** | `ENCYPTED PKT TEST BRANCH2 to 1 increased to 984.png` | **Smoking Gun:** Tunnel counter rising to 984 packets (+20) during ping test. |
+| **Encryption Proof** | `ENCYPTED PKT TEST BRANCH2 to 1 increased to 984.png` | Tunnel counter rising to 984 packets (+20) during ping test. |
 | **Underlay Captures** | `PCAP BRANCH2 port 2 10.0.1.10 to HQ 10.0.1.2.png` | Wireshark trace of MPLS underlay frames between Branch 2 and HQ. |
 | **Underlay Captures** | `PCAP BRANCH2 port 3 10.0.2.10 to HQ 10.0.2.2.png` | Wireshark trace of Broadband underlay frames between Branch 2 and HQ. |
 | **Packet Sniffer** | `diagnose sniffer packet any "icmp" 4 BRANCH2 proof HQ Traffic goes out port 2 MPLS.png` | CLI packet sniffer confirming live packets egressing `ADVPN-MPLS`. |

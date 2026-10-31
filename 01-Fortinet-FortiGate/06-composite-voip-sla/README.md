@@ -357,8 +357,8 @@ For independent packet-by-packet verification in Wireshark, the raw capture file
 | **Phase 5: Multi-Vector (All 3)** | `overall-intentional-failure-config.png` | Linux command injecting combined degradation (`delay 70ms 15ms loss 2%`). |
 | **Phase 5: Multi-Vector (All 3)** | `overall-health-check.png` | Health check showing concurrent failure across all 3 metrics (`latency: 79.5ms`, `jitter: 11.8ms`, `loss: 1%`). |
 | **Phase 5: Multi-Vector (All 3)** | `overall-diagnose-service.png` | Service table showing Member 2 promoted while Member 1 is disqualified (`sla(0x0)`). |
-| **Phase 5: Multi-Vector (Wire)** | `overeall-fail-port-2-seq-99.png` | **The Money Shot:** Wireshark on `port2` capturing stream cut-off at sequence `seq=99`. |
-| **Phase 5: Multi-Vector (Wire)** | `overall-fail-port-3-seq-100.png` | **The Money Shot:** Wireshark on `port3` capturing seamless pickup at sequence `seq=100`. |
+| **Phase 5: Multi-Vector (Wire)** | `overeall-fail-port-2-seq-99.png` | Wireshark on `port2` capturing stream cut-off at sequence `seq=99`. |
+| **Phase 5: Multi-Vector (Wire)** | `overall-fail-port-3-seq-100.png` | Wireshark on `port3` capturing seamless pickup at sequence `seq=100`. |
 | **Phase 5: Multi-Vector (All 3)** | `overall-traceroute-after.png` | Final traceroute verifying traffic traversing Broadband gateway `10.0.2.1`. |
 | **Phase 5: Multi-Vector (PCAPs)**| [Drive: `overall-slow-test-port-2.pcapng`](https://drive.google.com/drive/folders/1zbTsQM5IDVV_s9MAefLFgP0ITRIJjlnt?usp=sharing) | Raw packet capture file on `port2` during triple-metric degradation (95 KB). |
 | **Phase 5: Multi-Vector (PCAPs)**| [Drive: `overall-slow-test-port-3.pcapng`](https://drive.google.com/drive/folders/1zbTsQM5IDVV_s9MAefLFgP0ITRIJjlnt?usp=sharing) | Raw packet capture file on `port3` during triple-metric degradation (102 KB). |
@@ -374,4 +374,4 @@ For independent packet-by-packet verification in Wireshark, the raw capture file
 ---
 
 ### Next Architecture Module
-* **[Project 8: ADVPN with Dynamic SD-WAN Shortcuts (Hub-and-Spoke Topology)](../PROJECT%208/)** — Establishing direct, on-demand, encrypted spoke-to-spoke IPsec shortcuts using BGP and Fortinet Auto-Discovery VPN (ADVPN).
+* **[Project 7: ADVPN with Dynamic SD-WAN Shortcuts (Hub-and-Spoke Topology)](../07-advpn-dynamic-shortcuts/)** — Establishing direct, on-demand, encrypted spoke-to-spoke IPsec shortcuts using BGP and Fortinet Auto-Discovery VPN (ADVPN).
