@@ -11,7 +11,7 @@ Using an inline Linux **Network Degradation Appliance** running the **Kernel Net
 3. **Packet Loss Threshold Breach** (> 1%)
 4. **Multi-Vector Degradation (Latency + Jitter + Loss combined)**
 
-In each test, Wireshark packet captures confirmed deterministic, sub-second failover from the degraded MPLS circuit (**port2**) to the healthy Broadband circuit (**port3**) at the exact ICMP sequence boundary with zero session breakdown.
+In each test, Wireshark packet captures confirmed deterministic, sub-second failover from the degraded MPLS circuit **(port2)** to the healthy Broadband circuit **(port3)** at the exact ICMP sequence boundary with zero session breakdown.
 
 **Live PCAP of SD-WAN port transition: Please enlarge for clearer video**
 
@@ -19,11 +19,11 @@ In each test, Wireshark packet captures confirmed deterministic, sub-second fail
 
 ## Lab Architecture & Testbed Topology
 
-An Alpine Linux **Network Degradation Appliance** was inserted inline between `ISP-A (MPLS)` (**fa0/0**) and `Fortinet-HQ` (`port2`) using a bridged network segment (`eth0` <-> `eth1`), allowing non-disruptive, software-defined WAN impairment injection via Linux Traffic Control (`tc`).
-
-![sd-wan](screenshots/sd-wan-vpn.png)
+An Alpine Linux **Network Degradation Appliance** was inserted inline between `ISP-A (MPLS)` (**fa0/0**) and `Fortinet-HQ` (port2) using a bridged network segment (`eth0` <-> `eth1`), allowing non-disruptive, software-defined WAN impairment injection via Linux Traffic Control (`tc`).
 
 ![sd-wan](screenshots/sd-wan-qos-visio.png)
+
+![sd-wan](screenshots/degradation-topology.png)
 
 ### Addressing & Performance SLA Target Matrix
 | Circuit / Interface | Provider | IP Addressing | VoIP SLA Latency | VoIP SLA Jitter | VoIP SLA Loss | Priority Rank |

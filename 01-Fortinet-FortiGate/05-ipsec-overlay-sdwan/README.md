@@ -1,6 +1,6 @@
 # Dual Route-Based IPsec Overlay Tunnels over SD-WAN Zone
 
-## Executive Summary
+## Summary
 This module represents the architectural peak of the Fortinet FortiGate SD-WAN implementation: **building an automated, multi-path encrypted overlay fabric across diverse transport circuits.**
 
 In traditional deployments, an IPsec VPN tunnel is bound to a single physical WAN interface. If that underlay circuit suffers a brownout or hard failure, the tunnel tears down, terminating all client sessions and requiring a re-negotiation sequence over a secondary tunnel. 
