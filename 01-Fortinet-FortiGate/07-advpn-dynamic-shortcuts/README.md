@@ -33,13 +33,13 @@ Key capabilities engineered and validated in this project:
 ### Hub (HQ) Parent VPN Architecture & Dynamic Tunnel Instantiation
 
 #### 1. The Dynamic Parent-Child Dialup Model
-In standard site-to-site IPsec VPNs, tunnels require static peer IP addresses (`remote-gw`). Because our Hub must terminate dozens of remote branches dynamically across multiple underlays without pre-defining individual Phase 1 tunnels for every spoke, the Hub deploys **Dynamic Dialup Parent Tunnels**:
+In standard site-to-site IPsec VPNs, tunnels require static peer IP addresses (remote-gw). Because our Hub must terminate dozens of remote branches dynamically across multiple underlays without pre-defining individual Phase 1 tunnels for every spoke, the Hub deploys **Dynamic Dialup Parent Tunnels**:
 
 * **Parent Interface (type dynamic, net-device disable):** 
   * Acts as a listening template on each physical WAN interface:
     * ADVPN-MPLS bound to port2 (10.0.1.2)
     * ADVPN-BROADBAND bound to port3 (10.0.2.2)
-* **Child Dynamic Instances (`dial_inst`):**
+* **Child Dynamic Instances (dial_inst):**
   * When a Spoke initiates an IKEv2 negotiation, FortiOS spawns a unique, indexed child instance (e.g., `ADVPN-MPLS_0`, `ADVPN-MPLS_1`, `ADVPN-BROADBAND_0`) bound to that specific spoke's underlay IP and overlay tunnel ID.
   * Setting `auto-discovery-sender enable` arms the parent template so that when inter-spoke transit traffic hits the Hub, the kernel sends an **NHRP Redirect** back to the initiator.
 
@@ -92,7 +92,7 @@ end
 ---
 
 #### 2. Kernel Tunnel Table: Parent Templates & Active Child Instances
-Querying `diagnose vpn tunnel list` on `Fortinet-HQ` shows the parent interfaces maintaining child instances for both spokes simultaneously:
+Querying `diagnose vpn tunnel list` on Fortinet-HQ shows the parent interfaces maintaining child instances for both spokes simultaneously:
 
 ```text
 FortiGate-VM64-KVM # diagnose vpn tunnel list
@@ -294,8 +294,8 @@ end
 ### Spoke 2 (Branch 2) SD-WAN Steering Verification: HQ & Branch 1 Paths
 
 On **Fortinet-Branch-2**, the SD-WAN service table enforces path separation across the encrypted overlays based on application intent:
-* **Rule 1 (`HQ-TRAFFIC` to `10.10.10.0/24`):** Prioritizes Member 3 (`ADVPN-MPLS`) over Member 4 (`ADVPN-BROADBAND`).
-* **Rule 2 (`BRANCH1-TRAFFIC` to `10.20.20.0/24`):** Prioritizes Member 4 (`ADVPN-BROADBAND`) over Member 3 (`ADVPN-MPLS`).
+* **Rule 1 (HQ-TRAFFIC to 10.10.10.0/24):** Prioritizes Member 3 (ADVPN-MPLS) over Member 4 (ADVPN-BROADBAND).
+* **Rule 2 (BRANCH1-TRAFFIC to 10.20.20.0/24):** Prioritizes Member 4 (ADVPN-BROADBAND) over Member 3 (ADVPN-MPLS).
 
 ```text
 FortiGate-VM64-KVM # diagnose sys sdwan service 1
@@ -321,7 +321,7 @@ Dst address(1):
 
 ---
 
-#### Verification 1: Branch 2 to HQ Target (`10.10.10.10`) over MPLS
+#### Verification 1: Branch 2 to HQ Target (10.10.10.10) over MPLS
 
 1. **End-to-End ICMP Reachability from `Branch-2-PC`:**
    ```bash
@@ -340,7 +340,7 @@ Dst address(1):
 ![sd-wan](screenshots/ping-success-branch-2-to-hq.png)
 
 2. **Data Plane Wire Sniffer Proof (diagnose sniffer packet):**
-   Sniffing ICMP frames on `Fortinet-Branch-2` confirms that traffic destined for **10.10.10.10** is strictly forwarded out of **ADVPN-MPLS** (Member 3) in compliance with Service Rule 1:
+   Sniffing ICMP frames on Fortinet-Branch-2 confirms that traffic destined for **10.10.10.10** is strictly forwarded out of **ADVPN-MPLS** (Member 3) in compliance with Service Rule 1:
    ```text
    FortiGate-VM64-KVM # diagnose sniffer packet any "icmp" 4
    ...
@@ -452,7 +452,7 @@ Both groups have `route-reflector-client enable` and `additional-path both` conf
 
 ---
 
-#### Comprehensive BGP Neighbor Adjacency Matrix
+#### Comprehensive BGP Neighbor Adjacency 
 | Neighbor IP | Overlay Tunnel | Remote Site | Remote Router ID | Peer-Group Member | BGP State | Prefix Accepted / Announced |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **`10.255.1.2`** | ADVPN-MPLS | **Branch 1** | 2.2.2.2 | MPLS-SPOKES | **Established** | 1 accepted / 2 announced |
@@ -464,7 +464,7 @@ Both groups have `route-reflector-client enable` and `additional-path both` conf
 
 #### Deep-Dive Neighbor Telemetry & State Verification
 
-##### A. Neighbor 10.255.1.2 — Spoke 1 over MPLS
+##### A. Neighbor 10.255.1.2 (Branch-1) — Spoke 1 over MPLS
 * **Remote Router ID:** 2.2.2.2 (AS 65000)
 * **Status:** Established, Route-Reflector Client
 
@@ -474,7 +474,7 @@ Both groups have `route-reflector-client enable` and `additional-path both` conf
 
 ---
 
-##### B. Neighbor 10.255.1.3 — Spoke 2 over MPLS
+##### B. Neighbor 10.255.1.3 (Branch-2) — Spoke 2 over MPLS
 * **Remote Router ID:** 3.3.3.3 (AS 65000)
 * **Status:** Established, Route-Reflector Client
 
@@ -484,7 +484,7 @@ Both groups have `route-reflector-client enable` and `additional-path both` conf
 
 ---
 
-##### C. Neighbor 10.255.2.2 — Spoke 1 over Broadband
+##### C. Neighbor 10.255.2.2 (Branch-1) — Spoke 1 over Broadband
 * **Remote Router ID:** 2.2.2.2 (AS 65000)
 * **Status:** Established, Route-Reflector Client
 
@@ -494,7 +494,7 @@ Both groups have `route-reflector-client enable` and `additional-path both` conf
 
 ---
 
-##### D. Neighbor 10.255.2.3 — Spoke 2 over Broadband
+##### D. Neighbor 10.255.2.3 (Branch-2) — Spoke 2 over Broadband
 * **Remote Router ID:** 3.3.3.3 (AS 65000)
 * **Status:** Established, Route-Reflector Client
 
@@ -502,7 +502,6 @@ Both groups have `route-reflector-client enable` and `additional-path both` conf
 
 ![sd-wan](screenshots/10.255.2.3.png)
 
----
 
 1. **Zero Spoke-to-Spoke Peering:** Neither Branch 1 nor Branch 2 needs to peer with one another. The Hub reflects prefixes to each spoke with the **original spoke's next-hop preserved**.
 2. **Dual-Transport Multipath:** Because both MPLS-SPOKES and BROADBAND-SPOKES peer groups are active, each spoke learns two valid paths for every remote subnet (10.255.1.x and 10.255.2.x), feeding FortiOS SD-WAN with real-time candidate paths.
@@ -512,7 +511,7 @@ Both groups have `route-reflector-client enable` and `additional-path both` conf
 
 ### Phase 2: Dynamic Shortcut Sequence 
 
-When Branch-2-PC (10.30.30.10) initiated an ICMP stream targeting Branch-1-Client (10.20.20.10), the FortiOS ADVPN engine executed the following sequence:
+When **Branch-2-PC (10.30.30.10)** initiated an ICMP stream targeting **Branch-1-Client** (10.20.20.10), the FortiOS ADVPN engine executed the following sequence:
 
 ![sd-wan](screenshots/ping-success-branch2-to-1.png)
 
@@ -581,7 +580,7 @@ Captures taken on the physical WAN segment confirmed direct spoke-to-spoke crypt
    * Filter: `_ws.col.protocol == "ESP"`
    * Captured continuous IP Protocol 50 frames with SPI 0xafc825fb passing between 10.0.1.10 ↔ 10.0.1.6 with zero Hub IP headers involved.
 
-**Source: 10.0.1.6 (BRANCH1) Destination: 10.0.1.10 (BRANCH2)**
+**Source: 10.0.1.6 (BRANCH1) - Destination: 10.0.1.10 (BRANCH2)**
 
 ![sd-wan](screenshots/wireshark-esp-branch-1-to-2.png)
    
@@ -601,7 +600,7 @@ To test automated self-healing across the overlay fabric, interface FastEthernet
    *Oct 30 10:36:55.534: %LINK-5-CHANGED: Interface FastEthernet4/0, changed state to administratively down
    *Oct 30 10:36:56.534: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet4/0, changed state to down
    ```
-![sd-wan](screenshots/branch-1-to-2-intentional-failure.png)
+![sd-wan](screenshots/branch-2-to-1-intentional-failure.png)
 
 2. **SD-WAN Health-Check Detection & Dead State Transition:**
    Within 3 consecutive probe intervals (15 seconds), the ADVPN_HEALTH monitor detected total loss on Seq(4 ADVPN-BROADBAND) and transitioned it to state(dead):
