@@ -234,7 +234,7 @@ Both circuits meet SLA requirements (`sla_map=0x1`). Member 1 (`port2`) is activ
 
 ![sd-wan](screenshots/packet-loss-health-check.png)
 
-![sd-wan](screenshots/packet-loss-daignose-service.png)
+![sd-wan](screenshots/packet-loss-diagnose-service.png)
 
 3. **Wire-Level Sequence Hand-off Proof:**
    * **`port2` (MPLS):** Last packet captured on primary link is sequence **`seq=84`**.
