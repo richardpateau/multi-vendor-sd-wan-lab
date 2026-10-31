@@ -17,7 +17,7 @@ Key capabilities engineered and validated in this project:
 
 ![sd-wan](screenshots/sd-wan-tunnel.png)
 
-![sd-wan](screenshots/advpn.topology.png)
+![sd-wan](screenshots/advpn-topology.png)
 
 ### Addressing, BGP & Cryptographic Matrix
 | Device | Role | Interface | Underlay IP | ADVPN Overlay IP | BGP Router ID | Advertised LAN |
@@ -652,10 +652,6 @@ To test automated self-healing across the overlay fabric, interface `FastEtherne
 
 ---
 
-Here are the updated **Raw Packet Capture (PCAP) Download** and **Complete Evidence Index** sections for your `README.md`, perfectly aligned with your Google Drive contents and the exact 55 standardized filenames inside your `screenshots/` directory:
-
----
-
 ## Raw Packet Capture (PCAP) Downloads
 
 For deep-packet inspection in Wireshark, the raw capture files documenting the entire ADVPN shortcut negotiation sequence and underlay encapsulation are hosted in Google Drive:
@@ -702,39 +698,6 @@ For deep-packet inspection in Wireshark, the raw capture files documenting the e
 | **BGP Neighbor Telemetry**| `bgp-neighbor-10.255.1.3.png` | Detailed neighbor output for Spoke 2 MPLS (`10.255.1.3`), confirming Route-Reflector Client status. |
 | **BGP Neighbor Telemetry**| `bgp-neighbor-10.255.2.2.png` | Detailed neighbor output for Spoke 1 Broadband (`10.255.2.2`), confirming Route-Reflector Client status. |
 | **BGP Neighbor Telemetry**| `bgp-neighbor-10.255.2.3.png` | Detailed neighbor output for Spoke 2 Broadband (`10.255.2.3`), confirming Route-Reflector Client status. |
-| **BGP Prefix Details** | `10.255.1.2.png` | Confirms prefixes announced/accepted to Spoke 1 over MPLS. |
-| **BGP Prefix Details** | `10.255.1.3.png` | Confirms prefixes announced/accepted to Spoke 2 over MPLS. |
-| **BGP Prefix Details** | `10.255.2.2.png` | Confirms prefixes announced/accepted to Spoke 1 over Broadband. |
-| **BGP Prefix Details** | `10.255.2.3.png` | Confirms prefixes announced/accepted to Spoke 2 over Broadband. |
-| **BGP Routing Table** | `get router info bgp network HQ .png` | Hub BGP table showing reflected routes for `10.10.10.0/24`, `10.20.20.0/24`, and `10.30.30.0/24`. |
-| **BGP Routing Table** | `get-router-info-bgp-network-branch-1.png` | Spoke 1 BGP table confirming learned prefixes with preserved spoke next-hops. |
-| **BGP Routing Table** | `get-router-info-bgp-network-branch-2.png` | Spoke 2 BGP table confirming learned prefixes with preserved spoke next-hops. |
-| **System Routing Table**| `get router info routing-table all HQ .png` | Kernel routing table on Hub displaying recursive next-hops over ADVPN tunnels. |
-| **System Routing Table**| `get router info routing-table all BRANCH1.png` | Kernel routing table on Spoke 1 showing learned ECMP routes to remote subnets. |
-| **System Routing Table**| `get router info routing-table all BRANCH2.png` | Kernel routing table on Spoke 2 showing learned ECMP routes to remote subnets. |
-| **Service Diagnostics** | `diagnose-service-1.png` | Live SD-WAN service diagnostic on Spoke confirming active selected member. |
-| **Traffic Validation** | `ping-success-branch-2-to-hq.png` | End-to-end ping from `Branch-2-PC` to `HQ-Server` (`10.10.10.10`) with 0% loss and ~19 ms RTT. |
-| **Traffic Validation** | `ping-success-branch2-to-1.png` | End-to-end ping from `Branch-2-PC` to `Branch-1-Client` (`10.20.20.10`) with 0% loss. |
-| **Traffic Validation** | `branch-1-to-2-ping.png` | Symmetrical ping validation from `Branch-1-Client` to `Branch-2-PC` (`10.30.30.10`). |
-| **Path Verification** | `traceroute-branch-2-to-1-before.png` | Traceroute showing initial packet path transiting through the Hub before shortcut creation. |
-| **Path Verification** | `traceroute-branch-2-to-1-after.png` | **Shortcut Proof:** Traceroute showing inter-branch traffic routing directly between spokes. |
-| **Path Verification** | `traceroute-branch-2-to-1-before-after.png`| Side-by-side traceroute comparison demonstrating Hub bypass. |
-| **Path Verification** | `branch-2-to-1-traceroute-after.png` | Traceroute post-broadband failure showing clean failover to MPLS. |
-| **Path Verification** | `branch-2-to-1-traceroute-after-remote-ip.png` | Traceroute verifying spoke next-hop preservation across underlays. |
-| **Packet Sniffer** | `fortinet-sniff-test-mpls.png` | CLI sniffer on Branch 2 verifying ICMP frames egressing `ADVPN-MPLS` to HQ. |
-| **Packet Sniffer** | `fortinet-sniff-test-broadband.png` | CLI sniffer on Branch 2 verifying ICMP frames egressing `ADVPN-BROADBAND` to Branch 1. |
-| **Dynamic Shortcut (IKE)**| `dynamic-tunnel-branch-1.png` | Wire capture of IKE Phase 1 handshake negotiated directly on Branch 1. |
-| **Dynamic Shortcut (IKE)**| `dynamic-tunnel-branch-2.png` | Wire capture of IKE Phase 1 handshake negotiated directly on Branch 2. |
-| **Shortcut Telemetry** | `diagnose-vpn-branch-2-to-branch-1-964.png`| Baseline shortcut tunnel status showing `mode=dial_inst/3` and 964 encrypted packets. |
-| **Shortcut Telemetry** | `diagnose-vpn-branch-2-to-branch-1-984.png`| **Smoking Gun:** Tunnel counter rising to 984 packets (+20) during live spoke-to-spoke ping. |
-| **Underlay Captures** | `wireshark-esp-hq-branch-1.png` | Wireshark capture of ESP underlay frames between HQ and Branch 1. |
-| **Underlay Captures** | `wireshark-esp-hq-branch-2.png` | Wireshark capture of ESP underlay frames between HQ and Branch 2 (`10.0.1.10 ↔ 10.0.1.2`). |
-| **Direct Spoke Captures**| `wireshark-esp-branch-1-to-2.png` | Wire capture proving direct ESP encapsulation from Branch 1 to Branch 2. |
-| **Direct Spoke Captures**| `wireshark-esp-branch-2-to-1.png` | Wire capture proving direct ESP encapsulation from Branch 2 to Branch 1 (`10.0.2.10 ↔ 10.0.2.2`). |
-| **Failover Injection** | `branch-2-to-1-intentional-failure.png`| Cisco console output showing administrative shutdown of `FastEthernet4/0` on `ISP-B`. |
-| **Failover Reaction** | `branch-2-to-branch-1-health-check.png`| SD-WAN health check detecting Broadband dead (`100.000% loss`) and failing over to MPLS. |
-| **Failover Reaction** | `branch-1-to-hq-health-mpls-dead.png` | Telemetry showing health check reaction when MPLS underlay is impaired. |
-| **Failover Reaction** | `branch-2-to-1-diagnose-service.png` | SD-WAN service table showing dynamic demotion of the failed circuit and promotion of MPLS. |
 
 ---
 
