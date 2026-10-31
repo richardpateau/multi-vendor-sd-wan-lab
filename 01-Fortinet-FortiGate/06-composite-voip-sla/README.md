@@ -1,6 +1,6 @@
 # Advanced Composite SLA Monitoring & VoIP Path Optimization
 
-## Executive Summary
+## Summary
 Traditional WAN routing and basic health checks rely on binary link states (carrier up/down) or simple ICMP reachability ("alive vs. dead"). However, a circuit can maintain 100% reachability while suffering from severe packet loss, excessive queuing delay, or high jitter—rendering mission-critical real-time applications such as **Voice over IP (VoIP - SIP/RTP)**, **Microsoft Teams**, and **Zoom** completely unusable.
 
 This project implements **Advanced Composite SLA Monitoring** on Fortinet FortiOS SD-WAN. Rather than waiting for a complete link blackout, the FortiGate continuously samples real-time performance telemetry across each underlay circuit. 

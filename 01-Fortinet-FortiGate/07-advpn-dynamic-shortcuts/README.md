@@ -1,4 +1,4 @@
-# Dual-Hub ADVPN with Dynamic Spoke-to-Spoke SD-WAN Shortcuts
+# Central Hub ADVPN with Dynamic Spoke-to-Spoke SD-WAN Shortcuts
 
 ## Executive Summary
 In traditional Hub-and-Spoke VPN deployments, all inter-branch traffic must transit through the corporate datacenter or headquarters hub (Spoke 1 ➔ Hub ➔ Spoke 2). This architecture introduces significant latency, exhausts hub compute and bandwidth resources, and establishes the hub as a single point of failure for branch-to-branch operations.
