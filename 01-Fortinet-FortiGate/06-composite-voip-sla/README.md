@@ -285,52 +285,84 @@ Both circuits meet SLA requirements (`sla_map=0x1`). Member 1 (`port2`) is activ
 
 ![sd-wan](screenshots/overall-traceroute-after.png)
 
-![sd-wan](screenshots/overall-traceroute-before-after.png)
-
 4. **Recovery & Preemption:**
    Removing the impairment (`sudo tc qdisc del dev eth0 root`) restored Member 1 latency to ~11 ms. FortiGate detected 3 consecutive compliant recovery intervals and preempted traffic back to Priority 1 (`port2`) cleanly.
 
 ---
 
-## Complete Evidence Index (36 Artifacts)
+## Raw Packet Capture (PCAP) Downloads
 
-| Phase | Artifact / Screenshot | Purpose & Technical Verification |
+For independent packet-by-packet verification in Wireshark, the raw capture files documenting each degradation test on both physical egress interfaces (`port2` and `port3`) are hosted in Google Drive:
+
+📁 **[Open Google Drive SD-WAN Voice Quality PCAP Directory](https://drive.google.com/drive/folders/1zbTsQM5IDVV_s9MAefLFgP0ITRIJjlnt?usp=sharing)**
+
+| Test Scenario | Interface | Filename | Size | Purpose & Technical Verification |
+| :--- | :--- | :--- | :--- | :--- |
+| **1. Latency Test** | `port2` (MPLS) | `latency-test-port-2.pcapng` | 35 KB | Shows stream termination on primary link at sequence `seq=48`. |
+| **1. Latency Test** | `port3` (B-Band) | `latency-test-port-3.pcapng` | 36 KB | Shows instantaneous stream resumption on backup link at sequence `seq=49`. |
+| **2. Jitter Test** | `port2` (MPLS) | `jitter-test-port-2.pcapng` | 41 KB | Shows stream termination on primary link at sequence `seq=32`. |
+| **2. Jitter Test** | `port3` (B-Band) | `jitter-test-port-3.pcapng` | 55 KB | Shows seamless pickup on backup link at sequence `seq=33`. |
+| **3. Packet Loss Test** | `port2` (MPLS) | `packet-loss-test-port-2.pcapng` | 147 KB | Shows stream cut-off on primary link at sequence `seq=84`. |
+| **3. Packet Loss Test** | `port3` (B-Band) | `packet-loss-test-port-3.pcapng` | 201 KB | Shows pickup on backup link at sequence `seq=85`. |
+| **4. Multi-Vector (All 3)** | `port2` (MPLS) | `overall-slow-test-port-2.pcapng` | 95 KB | Stream drop on primary link at sequence `seq=99` during combined stress. |
+| **4. Multi-Vector (All 3)** | `port3` (B-Band) | `overall-slow-test-port-3.pcapng` | 102 KB | Immediate failover pickup on backup link at sequence `seq=100`. |
+
+> **Wireshark Display Filter:**  
+> `ip.src == 192.168.1.10 && icmp`
+
+---
+
+## Complete Evidence Index
+
+| Phase / Scenario | Artifact / Screenshot | Purpose & Technical Verification |
 | :--- | :--- | :--- |
-| **Phase 1: Architecture** | `degradation topology.png` | Topology diagram showing PNETLab inline Linux degradation device between ISP-A and HQ. |
-| **Phase 1: Architecture** | `service 6 hq.png` | CLI definition of SD-WAN Service Rule 6 (`VoIP-Composite-SLA-Rule`) on FortiGate HQ. |
-| **Phase 1: Architecture** | `ISP A MONITOR Show sla.png` | Shows SLA 1 thresholds under `ISP_A_Monitor` (50 ms latency, 10 ms jitter, 1% loss). |
-| **Phase 1: Architecture** | `ISP B MONITOR show.png` | Shows SLA 1 thresholds under `ISP_B_Monitor` (50 ms latency, 10 ms jitter, 1% loss). |
-| **Phase 1: Baseline** | `baseline ping to 192.168.2.10.png` | Continuous ping baseline showing 0% loss and ~16-20 ms RTT before impairment. |
-| **Phase 1: Baseline** | `diagnose sys sdwan health-check.png` | Health-check baseline verifying both members meet SLA (`sla_map=0x1`). |
-| **Phase 1: Baseline** | `diagnose sys sdwan service.png` | Service table showing Member 1 (`port2`) selected as active egress. |
-| **Phase 2: Latency Test** | `LATENCY ADDING intentional latency.png` | Linux terminal command applying `tc qdisc add dev eth1 root netem delay 70ms`. |
-| **Phase 2: Latency Test** | `LATENCH HEALTH CHECK SLA.png` | Health-check telemetry showing latency jumping to 80.387 ms and breaching SLA (`sla_map=0x0`). |
-| **Phase 2: Latency Test** | `LATENCY TEST diagnose sd wan service .png` | Service table showing Member 2 (`port3`) promoted over degraded Member 1. |
-| **Phase 2: Latency Test** | `LATENCY TEST traceroute before.png` | Baseline traceroute showing traffic passing through MPLS gateway `10.0.1.1`. |
-| **Phase 2: Latency Test** | `LATENCY traceroute after.png` | Post-failover traceroute showing traffic re-routed through Broadband gateway `10.0.2.1`. |
-| **Phase 2: Latency Test** | `LATENCY TEST wireshark ping sequence number stopping at 48.png` | **Wire Proof:** Packet capture on `port2` capturing stream cut-off at sequence `seq=48`. |
-| **Phase 2: Latency Test** | `LATENCY TEST wirehsark port 3 sequence number resuming at 49 failover successful.png` | **Wire Proof:** Packet capture on `port3` capturing stream resumption at sequence `seq=49`. |
-| **Phase 3: Jitter Test** | `JITTER TEST inetntional jitter.png` | Linux terminal command applying `tc qdisc add dev eth1 root netem delay 20ms 25ms`. |
-| **Phase 3: Jitter Test** | `JITTER HEALTH CHECK jitter reached.png` | Health-check telemetry showing jitter rising to 10.799 ms and breaching SLA threshold. |
-| **Phase 3: Jitter Test** | `JITTER sd wan service port 3 preferred.png` | Service table showing Member 2 (`port3`) selected due to Member 1 jitter failure. |
-| **Phase 3: Jitter Test** | `JITTER test traceroute before.png` | Traceroute through `10.0.1.1` prior to jitter injection. |
-| **Phase 3: Jitter Test** | `JITTER traceroute after.png` | Traceroute through `10.0.2.1` confirming dynamic steering post-jitter threshold breach. |
-| **Phase 3: Jitter Test** | `JITTER TEST wireshark ping pcaket stops at sequence 32 port 2.png` | **Wire Proof:** Wireshark capture on `port2` capturing flow termination at sequence `seq=32`. |
-| **Phase 3: Jitter Test** | `JITTER TEST wireshark port 3 packet starts at sequence 33 (ping) .png` | **Wire Proof:** Wireshark capture on `port3` capturing seamless pickup at sequence `seq=33`. |
-| **Phase 4: Loss Test** | `PACKET LOSS test intentional failure.png` | Linux command terminal managing `tc qdisc` drop policies. |
-| **Phase 4: Loss Test** | `PACKET LOSS 5 percent packet loss.png` | Linux command injecting `netem loss 3%` to breach the 1% loss ceiling. |
-| **Phase 4: Loss Test** | `PACKET LOSS sd wan service 6 port 3 preferred.png` | Service table confirming failover to `port3` triggered specifically by packet loss. |
-| **Phase 4: Loss Test** | `PACKET LOSS traceroute before.png` | Traceroute verifying baseline routing via `10.0.1.1`. |
-| **Phase 4: Loss Test** | `PACKET LOSS traceroute after.png` | Traceroute verifying failover routing via `10.0.2.1`. |
-| **Phase 4: Loss Test** | `PACKET LOSS port 2 ping packet stops at seq 84.png` | **Wire Proof:** Wireshark capture on `port2` showing stream ending at sequence `seq=84`. |
-| **Phase 4: Loss Test** | `PACKET LOSS port 3 packet loss stops at seq 85.png` | **Wire Proof:** Wireshark capture on `port3` showing stream resuming at sequence `seq=85`. |
-| **Phase 5: Combined** | `ALL THREE intentional latency jitter and packet loss.png` | Linux command applying `tc qdisc add dev eth0 root netem delay 70ms 15ms loss 2%`. |
-| **Phase 5: Combined** | `ALL 3 health check.png` | Diagnostics showing simultaneous failure across all 3 metrics (`latency: 79.5ms`, `jitter: 11.8ms`, `loss: 1%`). |
-| **Phase 5: Combined** | `ALL THREE sd wan service 6.png` | Service table showing Member 2 promoted while Member 1 is disqualified (`sla(0x0)`). |
-| **Phase 5: Combined** | `ALL 3 port 2 ping stops at seq 99.png` | **The Money Shot:** Wireshark on `port2` showing traffic terminating at sequence `seq=99`. |
-| **Phase 5: Combined** | `ALL THREE port 3 ping starts at seq 100.png` | **The Money Shot:** Wireshark on `port3` showing traffic resuming at sequence `seq=100`. |
-| **Phase 5: Combined** | `ALL THREE traceroute after .png` | Final traceroute verifying traffic traversing Broadband gateway `10.0.2.1`. |
-| **Video Proof** | `sd-wan-latency-test-2026-10-29_06.31.06.mp4` | Live screen capture of degradation injection, instantaneous failover, and ping continuity. |
+| **Phase 1: Architecture & Setup** | `degradation-topology.png` | PNETLab lab topology showing inline Linux degradation appliance between ISP-A and HQ. |
+| **Phase 1: Architecture & Setup** | `sd-wan-qos-visio.png` | Detailed Visio diagram illustrating VoIP SLA steering parameters and metric thresholds. |
+| **Phase 1: Architecture & Setup** | `config-health-check-isp-a.png` | CLI configuration of `ISP_A_Monitor` with SLA 1 (50 ms latency, 10 ms jitter, 1% loss). |
+| **Phase 1: Architecture & Setup** | `config-health-check-isp-b.png` | CLI configuration of `ISP_B_Monitor` with identical SLA 1 VoIP quality targets. |
+| **Phase 1: Architecture & Setup** | `config-service-show.png` | CLI output confirming SD-WAN Service Rule 6 (`VoIP-Composite-SLA-Rule`) in `mode sla`. |
+| **Phase 1: Baseline Health** | `baseline ping to 192.168.2.10.png` | Continuous baseline ICMP stream showing 0% loss and ~16–20 ms round-trip time. |
+| **Phase 1: Baseline Health** | `diagnose-health-check.png` | Telemetry showing both underlay members meeting SLA standards (`sla_map=0x1`). |
+| **Phase 1: Baseline Health** | `diagnose-sd-wan-service.png` | Service table showing Member 1 (`port2`) selected as primary egress path. |
+| **Phase 2: Latency Test** | `latency-test-intentional-config.png` | Linux terminal command applying `sudo tc qdisc add dev eth1 root netem delay 70ms`. |
+| **Phase 2: Latency Test** | `latency-test-health-check.png` | Health check detecting 80.387 ms latency and disqualifying Member 1 (`sla_map=0x0`). |
+| **Phase 2: Latency Test** | `latency-test-diagnose-service.png` | SD-WAN service table showing Member 2 (`port3`) promoted to active path. |
+| **Phase 2: Latency Test** | `latency-test-traceroute-before.png` | Baseline traceroute showing egress via MPLS gateway `10.0.1.1`. |
+| **Phase 2: Latency Test** | `latency-test-traceroute-after.png` | Failover traceroute showing dynamic rerouting via Broadband gateway `10.0.2.1`. |
+| **Phase 2: Latency Test** | `latency-traceroute-before-after.png` | Side-by-side traceroute comparison confirming path switch. |
+| **Phase 2: Latency Test (Wire)** | `latency-test-port-2-seq-48.png` | **Wire Proof:** Wireshark capture on `port2` capturing stream cut-off at sequence `seq=48`. |
+| **Phase 2: Latency Test (Wire)** | `latency-test-port-3-seq-49.png` | **Wire Proof:** Wireshark capture on `port3` showing seamless continuation at sequence `seq=49`. |
+| **Phase 2: Latency Test (PCAPs)** | [Drive: `latency-test-port-2.pcapng`](https://drive.google.com/drive/folders/1zbTsQM5IDVV_s9MAefLFgP0ITRIJjlnt?usp=sharing) | Raw packet capture file on `port2` (35 KB). |
+| **Phase 2: Latency Test (PCAPs)** | [Drive: `latency-test-port-3.pcapng`](https://drive.google.com/drive/folders/1zbTsQM5IDVV_s9MAefLFgP0ITRIJjlnt?usp=sharing) | Raw packet capture file on `port3` (36 KB). |
+| **Phase 3: Jitter Test** | `jitter-test-intentional-config.png` | Linux terminal command applying `sudo tc qdisc add dev eth1 root netem delay 20ms 25ms`. |
+| **Phase 3: Jitter Test** | `jitter-test-health-check.png` | Health check detecting jitter exceeding the 10 ms threshold (10.799 ms, `sla_map=0x0`). |
+| **Phase 3: Jitter Test** | `jitter-test-diagnose-service.png` | Service table showing Member 2 (`port3`) promoted over degraded Member 1. |
+| **Phase 3: Jitter Test** | `jitter-test-traceroute-before.png` | Traceroute prior to jitter injection traversing `10.0.1.1`. |
+| **Phase 3: Jitter Test** | `jitter-traceroute-after.png` | Traceroute post-jitter breach traversing `10.0.2.1`. |
+| **Phase 3: Jitter Test** | `jitter-traceroute-before-after.png` | Side-by-side traceroute comparison verifying jitter-induced reroute. |
+| **Phase 3: Jitter Test (Wire)** | `jitter-test-port-2-seq-32.png` | **Wire Proof:** Wireshark on `port2` capturing flow termination at sequence `seq=32`. |
+| **Phase 3: Jitter Test (Wire)** | `jitter-test-port-3-seq-33.png` | **Wire Proof:** Wireshark on `port3` showing stream pickup at sequence `seq=33`. |
+| **Phase 3: Jitter Test (PCAPs)** | [Drive: `jitter-test-port-2.pcapng`](https://drive.google.com/drive/folders/1zbTsQM5IDVV_s9MAefLFgP0ITRIJjlnt?usp=sharing) | Raw packet capture file on `port2` (41 KB). |
+| **Phase 3: Jitter Test (PCAPs)** | [Drive: `jitter-test-port-3.pcapng`](https://drive.google.com/drive/folders/1zbTsQM5IDVV_s9MAefLFgP0ITRIJjlnt?usp=sharing) | Raw packet capture file on `port3` (55 KB). |
+| **Phase 4: Packet Loss Test** | `packet-loss-intentional-failure.png` | Linux terminal command applying `sudo tc qdisc add dev eth1 root netem loss 3%`. |
+| **Phase 4: Packet Loss Test** | `packet-loss-health-check.png` | Health check detecting 5.000% packet loss, breaching the 1.0% SLA threshold. |
+| **Phase 4: Packet Loss Test** | `packet-loss-diagnose-service.png` | Service table confirming failover to `port3` specifically triggered by packet drops. |
+| **Phase 4: Packet Loss Test** | `packet-loss-traceroute-before.png` | Baseline traceroute via `10.0.1.1`. |
+| **Phase 4: Packet Loss Test** | `packet-loss-traceroute-after.png` | Post-failover traceroute via `10.0.2.1`. |
+| **Phase 4: Packet Loss Test** | `packet-loss-traceroute-before-after.png` | Side-by-side traceroute comparison for the packet loss test. |
+| **Phase 4: Packet Loss Test (Wire)**| `packet-loss-port-2-seq-84.png` | **Wire Proof:** Wireshark on `port2` showing stream ending at sequence `seq=84`. |
+| **Phase 4: Packet Loss Test (Wire)**| `packet-loss-port-3-seq-85.png` | **Wire Proof:** Wireshark on `port3` showing stream resuming at sequence `seq=85`. |
+| **Phase 4: Packet Loss Test (PCAPs)**| [Drive: `packet-loss-test-port-2.pcapng`](https://drive.google.com/drive/folders/1zbTsQM5IDVV_s9MAefLFgP0ITRIJjlnt?usp=sharing) | Raw packet capture file on `port2` (147 KB). |
+| **Phase 4: Packet Loss Test (PCAPs)**| [Drive: `packet-loss-test-port-3.pcapng`](https://drive.google.com/drive/folders/1zbTsQM5IDVV_s9MAefLFgP0ITRIJjlnt?usp=sharing) | Raw packet capture file on `port3` (201 KB). |
+| **Phase 5: Multi-Vector (All 3)** | `overall-intentional-failure-config.png` | Linux command injecting combined degradation (`delay 70ms 15ms loss 2%`). |
+| **Phase 5: Multi-Vector (All 3)** | `overall-health-check.png` | Health check showing concurrent failure across all 3 metrics (`latency: 79.5ms`, `jitter: 11.8ms`, `loss: 1%`). |
+| **Phase 5: Multi-Vector (All 3)** | `overall-diagnose-service.png` | Service table showing Member 2 promoted while Member 1 is disqualified (`sla(0x0)`). |
+| **Phase 5: Multi-Vector (Wire)** | `overeall-fail-port-2-seq-99.png` | **The Money Shot:** Wireshark on `port2` capturing stream cut-off at sequence `seq=99`. |
+| **Phase 5: Multi-Vector (Wire)** | `overall-fail-port-3-seq-100.png` | **The Money Shot:** Wireshark on `port3` capturing seamless pickup at sequence `seq=100`. |
+| **Phase 5: Multi-Vector (All 3)** | `overall-traceroute-after.png` | Final traceroute verifying traffic traversing Broadband gateway `10.0.2.1`. |
+| **Phase 5: Multi-Vector (PCAPs)**| [Drive: `overall-slow-test-port-2.pcapng`](https://drive.google.com/drive/folders/1zbTsQM5IDVV_s9MAefLFgP0ITRIJjlnt?usp=sharing) | Raw packet capture file on `port2` during triple-metric degradation (95 KB). |
+| **Phase 5: Multi-Vector (PCAPs)**| [Drive: `overall-slow-test-port-3.pcapng`](https://drive.google.com/drive/folders/1zbTsQM5IDVV_s9MAefLFgP0ITRIJjlnt?usp=sharing) | Raw packet capture file on `port3` during triple-metric degradation (102 KB). |
+| **Live Video Recording** | `sd-wan-latency-test.mp4` | Live screen capture of impairment injection, instantaneous failover, and ping continuity. |
 
 ---
 
