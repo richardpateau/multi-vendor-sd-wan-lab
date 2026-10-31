@@ -15,6 +15,8 @@ In each test, Wireshark packet captures confirmed deterministic, sub-second fail
 
 **Live PCAP of SD-WAN port transition: Please enlarge for clearer video**
 
+https://github.com/user-attachments/assets/8f342dd4-bdef-4718-855e-4e90551ee2f8
+
 ---
 
 ## Lab Architecture & Testbed Topology
