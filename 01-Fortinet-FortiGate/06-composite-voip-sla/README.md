@@ -1,4 +1,4 @@
-# Task 6: Advanced Composite SLA Monitoring & VoIP Path Optimization
+# Advanced Composite SLA Monitoring & VoIP Path Optimization
 
 ## Executive Summary
 Traditional WAN routing and basic health checks rely on binary link states (carrier up/down) or simple ICMP reachability ("alive vs. dead"). However, a circuit can maintain 100% reachability while suffering from severe packet loss, excessive queuing delay, or high jitter—rendering mission-critical real-time applications such as **Voice over IP (VoIP - SIP/RTP)**, **Microsoft Teams**, and **Zoom** completely unusable.
@@ -213,9 +213,9 @@ Both circuits meet SLA requirements (`sla_map=0x1`). Member 1 (`port2`) is activ
 
 ![sd-wan](screenshots/jitter-test-port-3-seq-33.png)
 
-![sd-wan](screenshots/jitter-test-traceroute-after.png)
+![sd-wan](screenshots/jitter-traceroute-after.png)
 
-![sd-wan](screenshots/jitter-test-traceroute-before-after.png)
+![sd-wan](screenshots/jitter-traceroute-before-after.png)
 ---
 
 ### Phase 4: Packet Loss Impairment Test (> 1% Threshold Breach)
