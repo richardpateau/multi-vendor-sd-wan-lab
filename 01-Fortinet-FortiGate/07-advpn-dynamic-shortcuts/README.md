@@ -345,8 +345,8 @@ Dst address(1):
    FortiGate-VM64-KVM # diagnose sniffer packet any "icmp" 4
    ...
    11.615830 port1 in 10.30.30.10 -> 10.10.10.10: icmp: echo request
-   11.615890 ADVPN-MPLS out 10.30.30.10 -> 10.10.10.10: icmp: echo request    <-- Egressing MPLS Overlay
-   12.429460 ADVPN-MPLS in 10.10.10.10 -> 10.30.30.10: icmp: echo reply       <-- Ingressing MPLS Overlay
+   11.615890 ADVPN-MPLS out 10.30.30.10 -> 10.10.10.10: icmp: echo request    
+   12.429460 ADVPN-MPLS in 10.10.10.10 -> 10.30.30.10: icmp: echo reply        
    12.429460 port1 out 10.10.10.10 -> 10.30.30.10: icmp: echo reply
    ```
 ![sd-wan](screenshots/fortinet-sniff-test-mpls.png)
@@ -378,8 +378,8 @@ Dst address(1):
    FortiGate-VM64-KVM # diagnose sniffer packet any "icmp" 4
    ...
    1.590472 port1 in 10.30.30.10 -> 10.20.20.1: icmp: echo request
-   1.590721 ADVPN-BROADBAND out 10.30.30.10 -> 10.20.20.1: icmp: echo request <-- Egressing Broadband Overlay
-   1.625969 ADVPN-BROADBAND in 10.20.20.1 -> 10.30.30.10: icmp: echo reply   <-- Ingressing Broadband Overlay
+   1.590721 ADVPN-BROADBAND out 10.30.30.10 -> 10.20.20.1: icmp: echo request 
+   1.625969 ADVPN-BROADBAND in 10.20.20.1 -> 10.30.30.10: icmp: echo reply   
    1.630452 port1 out 10.20.20.1 -> 10.30.30.10: icmp: echo reply
    ...
    2.590601 port1 in 10.30.30.10 -> 10.20.20.1: icmp: echo request
@@ -662,7 +662,6 @@ For deep-packet inspection in Wireshark, the raw capture files documenting the e
 > **Wireshark Display Filters:**
 > * Direct IKE Negotiations: `(_ws.col.protocol == "ISAKMP") && (ip.addr == 10.0.1.10 && ip.addr == 10.0.1.6)`
 > * Encrypted Shortcut ESP: `(_ws.col.protocol == "ESP") && (ip.addr == 10.0.1.10 && ip.addr == 10.0.1.6)`
-> * NHRP Control Messages: `nhrp`
 
 ---
 
