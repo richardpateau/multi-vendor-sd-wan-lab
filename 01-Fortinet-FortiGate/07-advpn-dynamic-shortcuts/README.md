@@ -642,7 +642,7 @@ To test automated self-healing across the overlay fabric, interface FastEthernet
 
 ![sd-wan](screenshots/branch-2-to-1-traceroute-after-remote-ip.png)
 
-![sd-wan](screenshots/branch-1-to-2-traceroute-after.png)
+![sd-wan](screenshots/branch-2-to-1-traceroute-after.png)
 
 ---
 
