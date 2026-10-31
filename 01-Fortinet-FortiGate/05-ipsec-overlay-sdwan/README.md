@@ -1,4 +1,4 @@
-# Task 5: Dual Route-Based IPsec Overlay Tunnels over SD-WAN Zone
+# Dual Route-Based IPsec Overlay Tunnels over SD-WAN Zone
 
 ## Executive Summary
 This module represents the architectural peak of the Fortinet FortiGate SD-WAN implementation: **building an automated, multi-path encrypted overlay fabric across diverse transport circuits.**
@@ -387,5 +387,9 @@ For deep-packet inspection in Wireshark, the raw capture trace containing the co
 
 ---
 
-### Next Module
-* **[Module 2: Cisco Catalyst SD-WAN (Viptela)](../../02-Cisco-Catalyst-SDWAN/)** — Exploring the enterprise controller-based architecture: vManage, vSmart, vBond orchestration, Overlay Management Protocol (OMP), and centralized data/app policies.
+### What's Next?
+
+With the secure, multi-path IPsec overlay foundation fully validated, the next step is to elevate our path selection from simple link-state failover to **Advanced Composite SLA Monitoring** to protect real-time applications.
+
+Continue to the next project to explore performance-based routing:
+- **[Project 6: Advanced Composite SLA Monitoring (VoIP Optimization)](../06-composite-voip-sla/)** – Utilizing Linux `tc netem` to simulate realistic WAN degradation (latency, jitter, packet loss) and proving sub-second, metric-driven failover for critical voice traffic.
