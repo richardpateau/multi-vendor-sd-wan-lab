@@ -22,18 +22,12 @@ Key capabilities engineered and validated in this project:
 ### Addressing, BGP & Cryptographic Matrix
 | Device | Role | Interface | Underlay IP | ADVPN Overlay IP | BGP Router ID | Advertised LAN |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Fortinet-HQ** | Hub / Route Reflector | `port2` (MPLS)<br>`port3` (BB)<br>`port1` (LAN) | `10.0.1.2/30`<br>`10.0.2.2/30`<br>`10.10.10.1/24` | `10.255.1.254/32`<br>`10.255.2.254/32` | `1.1.1.1` (AS 65000) | `10.10.10.0/24` |
-| **Fortinet-Branch-1** | Spoke 1 / RR Client | `port2` (MPLS)<br>`port3` (BB)<br>`port1` (LAN) | `10.0.1.6/30`<br>`10.0.2.6/30`<br>`10.20.20.1/24` | `10.255.1.2/32`<br>`10.255.2.2/32` | `2.2.2.2` (AS 65000) | `10.20.20.0/24` |
-| **Fortinet-Branch-2** | Spoke 2 / RR Client | `port2` (MPLS)<br>`port3` (BB)<br>`port1` (LAN) | `10.0.1.10/30`<br>`10.0.2.10/30`<br>`10.30.30.1/24`| `10.255.1.3/32`<br>`10.255.2.3/32` | `3.3.3.3` (AS 65000) | `10.30.30.0/24` |
-| **Branch-1-Client** | Spoke 1 Host | `eth0` | — | `10.20.20.10/24` | Gateway: `10.20.20.1` | Traffic Generator |
-| **Branch-2-PC** | Spoke 2 Host | `eth0` | — | `10.30.30.10/24` | Gateway: `10.30.30.1` | Traffic Generator |
-| **HQ-Server** | Hub Host | `eth0` | — | `10.10.10.10/24` | Gateway: `10.10.10.1` | Management / Core Target |
-
----
-Here is the complete **Parent IPsec VPN Tunnel & Dynamic Instantiation Architecture** section designed specifically for your **`Fortinet-HQ` Hub** in Project 7. 
-
-This section explains the parent-child tunnel relationship, documents the exact dynamic tunnel instancing (`dial_inst`), and integrates both Wireshark captures showing packets hitting the parent tunnels (`10.0.1.10 ➔ 10.0.1.2` and `10.0.2.10 ➔ 10.0.2.2`).
-
+| **Fortinet-HQ** | Hub / Route Reflector | port2 (MPLS)<br>port3 (BB)<br>port1 (LAN) | 10.0.1.2/30<br>10.0.2.2/30<br>10.10.10.1/24 | 10.255.1.254/32<br>10.255.2.254/32 | 1.1.1.1 (AS 65000) | 10.10.10.0/24 |
+| **Fortinet-Branch-1** | Spoke 1 / RR Client | port2 (MPLS)<br>port3 (BB)<br>port1 (LAN) | 10.0.1.6/30<br>10.0.2.6/30<br>10.20.20.1/24 | 10.255.1.2/32<br>10.255.2.2/32 | 2.2.2.2 (AS 65000) | 10.20.20.0/24 |
+| **Fortinet-Branch-2** | Spoke 2 / RR Client | port2 (MPLS)<br>port3 (BB)<br>port1 (LAN) | 10.0.1.10/30<br>10.0.2.10/30<br>10.30.30.1/24 | 10.255.1.3/32<br>10.255.2.3/32 | 3.3.3.3 (AS 65000) | 10.30.30.0/24 |
+| **Branch-1-Client** | Spoke 1 Host | eth0 | — | 10.20.20.10/24 | Gateway: 10.20.20.1 | Traffic Generator |
+| **Branch-2-PC** | Spoke 2 Host | eth0 | — | 10.30.30.10/24 | Gateway: 10.30.30.1 | Traffic Generator |
+| **HQ-Server** | Hub Host | eth0 | — | 10.10.10.10/24 | Gateway: 10.10.10.1 | Management / Core Target |
 ---
 
 ### Hub (HQ) Parent VPN Architecture & Dynamic Tunnel Instantiation
@@ -658,65 +652,89 @@ To test automated self-healing across the overlay fabric, interface `FastEtherne
 
 ---
 
+Here are the updated **Raw Packet Capture (PCAP) Download** and **Complete Evidence Index** sections for your `README.md`, perfectly aligned with your Google Drive contents and the exact 55 standardized filenames inside your `screenshots/` directory:
+
+---
+
+## Raw Packet Capture (PCAP) Downloads
+
+For deep-packet inspection in Wireshark, the raw capture files documenting the entire ADVPN shortcut negotiation sequence and underlay encapsulation are hosted in Google Drive:
+
+📁 **[Open Google Drive SD-WAN ADVPN PCAP Directory](https://drive.google.com/drive/folders/1H6k7S5ta2FrdIq20pBEoN_4-FmHGTUGh?usp=sharing)**
+
+| Artifact / PCAP File | Location | Size | What It Validates |
+| :--- | :--- | :--- | :--- |
+| **`branch-1-dynamic-tunnel-creation.pcapng`** | [Google Drive Link](https://drive.google.com/drive/folders/1H6k7S5ta2FrdIq20pBEoN_4-FmHGTUGh?usp=sharing) | 1.2 MB | Spoke 1 perspective: Captures initial NHRP redirect arrival, subsequent direct `IKE_SA_INIT` / `IKE_AUTH` exchange with Spoke 2 over UDP 500, and initial ESP frames. |
+| **`branch-2-dynamic-tunnel-creation.pcapng`** | [Google Drive Link](https://drive.google.com/drive/folders/1H6k7S5ta2FrdIq20pBEoN_4-FmHGTUGh?usp=sharing) | 1.1 MB | Spoke 2 perspective: Wire trace of on-demand shortcut establishment directly targeting Spoke 1 (`10.0.1.6`), confirming zero Hub data-plane dependency. |
+| **`branch-2-port-2.pcapng`** | [Google Drive Link](https://drive.google.com/drive/folders/1H6k7S5ta2FrdIq20pBEoN_4-FmHGTUGh?usp=sharing) | 227 KB | Wire-level capture on `port2` (MPLS) confirming direct IPsec ESP packets (`10.0.1.10 ↔ 10.0.1.6` / `10.0.1.2`). |
+| **`branch-2-port-3.pcapng`** | [Google Drive Link](https://drive.google.com/drive/folders/1H6k7S5ta2FrdIq20pBEoN_4-FmHGTUGh?usp=sharing) | 206 KB | Wire-level capture on `port3` (Broadband) verifying parallel health-checks and dynamic steering over `10.0.2.10 ↔ 10.0.2.2`. |
+
+> **Wireshark Display Filters:**
+> * Direct IKE Negotiations: `(_ws.col.protocol == "ISAKMP") && (ip.addr == 10.0.1.10 && ip.addr == 10.0.1.6)`
+> * Encrypted Shortcut ESP: `(_ws.col.protocol == "ESP") && (ip.addr == 10.0.1.10 && ip.addr == 10.0.1.6)`
+> * NHRP Control Messages: `nhrp`
+
+---
+
 ## Complete Evidence Index (55 Artifacts)
 
-| Phase | Artifact / Screenshot | Purpose & Technical Verification |
+| Phase / Category | Artifact (`screenshots/`) | Purpose & Technical Verification |
 | :--- | :--- | :--- |
-| **Topology** | `ADVPN topology.png` | Network topology diagram showing Hub-and-Spoke dual underlays and shortcut paths. |
-| **Interfaces** | `fortinet show ports HQ .png` | Physical interface status output on Fortinet-HQ verifying ports 1, 2, and 3. |
-| **Phase 1 Config** | `config vpn ipsec phase1-interface show HQ.png` | Displays Hub Phase 1 configuration with `auto-discovery-sender enable`. |
-| **Phase 1 Config** | `config vpn ipsec phase1-interface show BRANCH1.png` | Displays Spoke 1 Phase 1 configuration with `auto-discovery-receiver enable`. |
-| **Phase 2 Config** | `config vpn ipsec phase2-interface show HQ.png` | Displays Hub Phase 2 interface definitions with auto-negotiation enabled. |
-| **IKE Gateways** | `diagnose vpn ike gateway list BRANCH1 10.0.1.6.png` | Spoke 1 MPLS IKE gateway established to Hub (`10.0.1.2`). |
-| **IKE Gateways** | `diagnose vpn ike gateway list BRANCH 1 10.0.2.6.png` | Spoke 1 Broadband IKE gateway established to Hub (`10.0.2.2`). |
-| **IKE Gateways** | `diagnose vpn ike gateway list BRANCH2 10.0.1.10.png` | Spoke 2 MPLS IKE gateway established to Hub (`10.0.1.2`). |
-| **IKE Gateways** | `diagnose vpn ike gateway list BRANCH2 10.0.2.10.png` | Spoke 2 Broadband IKE gateway established to Hub (`10.0.2.2`). |
-| **Baseline Tunnels** | `diagnose vpn tunnel list 10.0.1.6 before.png` | Baseline tunnel list on Spoke 1 showing only the Hub tunnel on MPLS. |
-| **Baseline Tunnels** | `diagnose vpn tunnel list 10.0.2.6 before.png` | Baseline tunnel list on Spoke 1 showing only the Hub tunnel on Broadband. |
-| **Baseline Tunnels** | `diagnose vpn tunnel list 10.0.1.10 before .png` | Baseline tunnel list on Spoke 2 showing only the Hub tunnel on MPLS. |
-| **Baseline Tunnels** | `diagnose vpn tunnel list 10.0.2.10 before.png` | Baseline tunnel list on Spoke 2 showing only the Hub tunnel on Broadband. |
-| **BGP Summary** | `get router info bgp summary HQ.png` | Confirms Hub has 4 established BGP neighbors (spokes 1 & 2 across dual circuits). |
-| **BGP Summary** | `get router info bgp summary BRANCH1.png` | Spoke 1 BGP summary showing 2 established sessions to Hub (`10.255.1.254` / `10.255.2.254`). |
-| **BGP Summary** | `get router info bgp summary BRANCH2.png` | Spoke 2 BGP summary showing 2 established sessions to Hub (`10.255.1.254` / `10.255.2.254`). |
-| **BGP Neighbors** | `get router info bgp neighbor 10.255.1.2.png` | Detailed BGP neighbor output on Hub confirming Route Reflector Client status. |
-| **BGP RIB** | `get router info bgp network HQ .png` | Hub BGP table showing prefixes `10.10.10.0/24`, `10.20.20.0/24`, and `10.30.30.0/24`. |
-| **BGP RIB** | `get router info bgp network BRANCH1.png` | Spoke 1 BGP table showing reflected routes with original spoke next-hops preserved. |
-| **BGP RIB** | `get router info bgp network BRANCH2.png` | Spoke 2 BGP table showing reflected routes with original spoke next-hops preserved. |
-| **BGP Advertisements** | `get router info bgp network 10.255.1.3.png` | Hub BGP advertisement details for Spoke 2 over MPLS. |
-| **BGP Advertisements** | `get router info bgp network 10.255.2.2.2.png` | Hub BGP advertisement details for Spoke 1 over Broadband. |
-| **BGP Advertisements** | `get router info bgp network 10.255.2.3.png` | Hub BGP advertisement details for Spoke 2 over Broadband. |
-| **Routing Tables** | `get router info routing-table all HQ .png` | Hub routing table displaying recursive next-hops over dynamic ADVPN tunnels. |
-| **Routing Tables** | `get router info routing-table all BRANCH1.png` | Spoke 1 routing table displaying ECMP routes to remote subnets. |
-| **Routing Tables** | `get router info routing-table all BRANCH2.png` | Spoke 2 routing table displaying ECMP routes to remote subnets. |
-| **SD-WAN Members** | `diagnose sys sdwan member HQ.png` | Hub SD-WAN member inventory. |
-| **SD-WAN Members** | `diagnose sys sdwan member BRANCH1.png` | Spoke 1 SD-WAN member table showing members 3 & 4 with flag `0xd` (`may_child`). |
-| **SD-WAN Members** | `diagnose sys sdwan member BRANCH2.png` | Spoke 2 SD-WAN member table showing members 3 & 4 with flag `0xd` (`may_child`). |
-| **Health Checks** | `diagnose sys sdwan health-check BRANCH1.png` | Spoke 1 overlay health check telemetry showing both circuits healthy. |
-| **Health Checks** | `diagnose sys sdwan health-check BRANCH2.png` | Spoke 2 overlay health check telemetry showing both circuits healthy. |
-| **SD-WAN Services** | `SD WAN SERVICE 8 and 9 show BRANCH1.png` | Spoke 1 SD-WAN service configuration for HQ and Branch 2 steering. |
-| **SD-WAN Services** | `SD WAN SERVICE BRANCH2.png` | Spoke 2 SD-WAN service configuration for HQ and Branch 1 steering. |
-| **Traffic Validation** | `PING SUCCESS BRANCH2 PC pings HQ PC.png` | Successful ICMP ping stream from Branch 2 PC to HQ Server (0% packet loss). |
-| **Traffic Validation** | `PING SUCCESS BRANCH2 PC pings BRANCH1 PC.png` | Successful ICMP ping stream from Branch 2 PC to Branch 1 Client (0% packet loss). |
-| **Path Verification** | `BRANCH1 TO HQ TEST traceroute before.png` | Traceroute from Branch 1 to HQ confirming egress path. |
-| **Path Verification** | `BRANCH1 TO HQ TEST traceroute after.png` | Traceroute from Branch 1 to HQ post-failover. |
-| **Path Verification** | `BRANCH1 to BRANCH2 traceroute .png` | **Shortcut Proof:** Traceroute showing direct inter-branch path bypassing Hub. |
-| **Path Verification** | `BRANCH1 to BRANCH2 TEST traceroute after.png` | Traceroute post-broadband failure showing seamless failover to MPLS. |
-| **Service Steering** | `BRANCH1 TO HQ TEST diagnose service mpls 0x0.png` | SD-WAN service table on Branch 1 steering traffic over MPLS. |
-| **Service Steering** | `SD WAN SERVICE TEST BRANCH1 ping to HQ goes to port 2 MPLS.png` | Service rule diagnostic proving HQ traffic prefers `port2` (MPLS). |
-| **Service Steering** | `SD WAN SERVICE TEST BRANCH1 ping to BRANCH2 goes to port 3.png` | Service rule diagnostic proving Branch 2 traffic prefers `port3` (Broadband). |
-| **Dynamic Tunnel Handshake** | `DYNAMIC TUNNEL TEST BRANCH 1 init auth packets .png` | Wire capture of IKE Phase 1 handshake negotiated directly on Branch 1. |
-| **Dynamic Tunnel Handshake** | `DYNAMIC TUNNEL TEST BRANCH 2 init auth packets .png` | Wire capture of IKE Phase 1 handshake negotiated directly on Branch 2. |
-| **Encryption Proof** | `ENCYPTED PKT TEST BRANCH2 PC pinging BRANCH1.png` | Wireshark capture of live encrypted traffic flow between branches. |
-| **Encryption Proof** | `ENCYPTED PKT TEST BRANCH2 to 1 964 packets.png` | Baseline tunnel counter on shortcut tunnel showing 964 encrypted packets. |
-| **Encryption Proof** | `ENCYPTED PKT TEST BRANCH2 to 1 increased to 984.png` | Tunnel counter rising to 984 packets (+20) during ping test. |
-| **Underlay Captures** | `PCAP BRANCH2 port 2 10.0.1.10 to HQ 10.0.1.2.png` | Wireshark trace of MPLS underlay frames between Branch 2 and HQ. |
-| **Underlay Captures** | `PCAP BRANCH2 port 3 10.0.2.10 to HQ 10.0.2.2.png` | Wireshark trace of Broadband underlay frames between Branch 2 and HQ. |
-| **Packet Sniffer** | `diagnose sniffer packet any "icmp" 4 BRANCH2 proof HQ Traffic goes out port 2 MPLS.png` | CLI packet sniffer confirming live packets egressing `ADVPN-MPLS`. |
-| **Failover Injection** | `BRANCH1 to BRANCH2 TEST intentiona shutdown f4-0.png` | Cisco console output showing administrative shutdown of `f4/0` on `ISP-B`. |
-| **Failover Reaction** | `BRANCH1 to BRANCH2 TEST HEALTH CHECK BROADBAND DEAD .png` | Health check output showing Broadband flagged as dead (`100.000% loss`). |
-| **Failover Reaction** | `BRANCH1 to BRANCH2 TEST SD WAN SERVICE BROASBAND 0x0png` | SD-WAN service table showing Broadband member marked dead (`sla(0x0)`). |
-| **Failover Reaction** | `BRANCH1 TO HQ TEST HEALH CHECK MPLS DEAD.png` | Telemetry capture verifying health check detection when MPLS is impaired. |
-| **Operational Runbook** | `runbook` | Comprehensive Standard Operating Procedure (SOP) for ADVPN and BGP troubleshooting. |
+| **Topology** | `advpn-topology.png` | Network diagram showing Hub, dual Spokes, dual underlays (MPLS & Broadband), and dynamic shortcut paths. |
+| **HQ Configuration** | `hq-phase-1-interface.png` | Hub Phase 1 configuration showing dynamic dialup templates with `auto-discovery-sender enable`. |
+| **HQ Configuration** | `hq-phase-2-interface.png` | Hub Phase 2 interface configuration for `ADVPN-MPLS` and `ADVPN-BROADBAND`. |
+| **HQ Configuration** | `config-router-bgp-show-hq.png` | Hub BGP Route Reflector configuration (`neighbor-groups`, `additional-path both`, and network statements). |
+| **Spoke Configuration** | `branch-phase-1-interface.png` | Spoke Phase 1 configuration with `auto-discovery-receiver enable` and `remote-gw` set to Hub. |
+| **Spoke Configuration** | `config-health-check-show-branch.png` | SD-WAN health check configuration (`ADVPN_HEALTH`) monitoring Hub over both overlays. |
+| **Spoke Configuration** | `config-service-show-branch.png` | SD-WAN Service Rules 1 & 2 enforcing prioritized path selection to HQ and peer spokes. |
+| **Spoke Configuration** | `SD WAN SERVICE 8 and 9 show BRANCH1.png` | Spoke 1 service rules showing traffic priority steering. |
+| **Spoke Configuration** | `SD WAN SERVICE BRANCH2.png` | Spoke 2 service rules overview in FortiOS CLI. |
+| **Spoke Configuration** | `port-1-to-vpn-mpls-branch-2.png` | Confirms internal LAN binding and egress routing mappings on Spoke 2. |
+| **Tunnel Overview** | `sd-wan-tunnel.png` | Overview of active IPsec tunnel instances and parent interfaces. |
+| **Hub Tunnels (Spoke 1)** | `diagnose-vpn-list-hq-1.6.png` | Hub tunnel list output for Spoke 1 MPLS child instance (`10.0.1.6`). |
+| **Hub Tunnels (Spoke 1)** | `diagnose-vpn-list-hq-2.6.png` | Hub tunnel list output for Spoke 1 Broadband child instance (`10.0.2.6`). |
+| **Hub Tunnels (Spoke 2)** | `diagnose-vpn-list-hq-1.10.png` | Hub tunnel list output for Spoke 2 MPLS child instance (`10.0.1.10`). |
+| **Hub Tunnels (Spoke 2)** | `diagnose-vpn-list-hq-2.10.png` | Hub tunnel list output for Spoke 2 Broadband child instance (`10.0.2.10`). |
+| **BGP Summary** | `get-router-info-bgp-summary-hq.png` | Hub BGP summary verifying 4 established iBGP neighbors (2 spokes × 2 transport circuits). |
+| **BGP Summary** | `get router info bgp summary BRANCH1.png` | Spoke 1 BGP summary confirming dual peering sessions to Hub (`10.255.1.254` & `10.255.2.254`). |
+| **BGP Summary** | `get router info bgp summary BRANCH2.png` | Spoke 2 BGP summary confirming dual peering sessions to Hub (`10.255.1.254` & `10.255.2.254`). |
+| **BGP Neighbor Telemetry**| `bgp-neighbor-10.255.1.2.png` | Detailed neighbor output for Spoke 1 MPLS (`10.255.1.2`), confirming Route-Reflector Client status. |
+| **BGP Neighbor Telemetry**| `bgp-neighbor-10.255.1.3.png` | Detailed neighbor output for Spoke 2 MPLS (`10.255.1.3`), confirming Route-Reflector Client status. |
+| **BGP Neighbor Telemetry**| `bgp-neighbor-10.255.2.2.png` | Detailed neighbor output for Spoke 1 Broadband (`10.255.2.2`), confirming Route-Reflector Client status. |
+| **BGP Neighbor Telemetry**| `bgp-neighbor-10.255.2.3.png` | Detailed neighbor output for Spoke 2 Broadband (`10.255.2.3`), confirming Route-Reflector Client status. |
+| **BGP Prefix Details** | `10.255.1.2.png` | Confirms prefixes announced/accepted to Spoke 1 over MPLS. |
+| **BGP Prefix Details** | `10.255.1.3.png` | Confirms prefixes announced/accepted to Spoke 2 over MPLS. |
+| **BGP Prefix Details** | `10.255.2.2.png` | Confirms prefixes announced/accepted to Spoke 1 over Broadband. |
+| **BGP Prefix Details** | `10.255.2.3.png` | Confirms prefixes announced/accepted to Spoke 2 over Broadband. |
+| **BGP Routing Table** | `get router info bgp network HQ .png` | Hub BGP table showing reflected routes for `10.10.10.0/24`, `10.20.20.0/24`, and `10.30.30.0/24`. |
+| **BGP Routing Table** | `get-router-info-bgp-network-branch-1.png` | Spoke 1 BGP table confirming learned prefixes with preserved spoke next-hops. |
+| **BGP Routing Table** | `get-router-info-bgp-network-branch-2.png` | Spoke 2 BGP table confirming learned prefixes with preserved spoke next-hops. |
+| **System Routing Table**| `get router info routing-table all HQ .png` | Kernel routing table on Hub displaying recursive next-hops over ADVPN tunnels. |
+| **System Routing Table**| `get router info routing-table all BRANCH1.png` | Kernel routing table on Spoke 1 showing learned ECMP routes to remote subnets. |
+| **System Routing Table**| `get router info routing-table all BRANCH2.png` | Kernel routing table on Spoke 2 showing learned ECMP routes to remote subnets. |
+| **Service Diagnostics** | `diagnose-service-1.png` | Live SD-WAN service diagnostic on Spoke confirming active selected member. |
+| **Traffic Validation** | `ping-success-branch-2-to-hq.png` | End-to-end ping from `Branch-2-PC` to `HQ-Server` (`10.10.10.10`) with 0% loss and ~19 ms RTT. |
+| **Traffic Validation** | `ping-success-branch2-to-1.png` | End-to-end ping from `Branch-2-PC` to `Branch-1-Client` (`10.20.20.10`) with 0% loss. |
+| **Traffic Validation** | `branch-1-to-2-ping.png` | Symmetrical ping validation from `Branch-1-Client` to `Branch-2-PC` (`10.30.30.10`). |
+| **Path Verification** | `traceroute-branch-2-to-1-before.png` | Traceroute showing initial packet path transiting through the Hub before shortcut creation. |
+| **Path Verification** | `traceroute-branch-2-to-1-after.png` | **Shortcut Proof:** Traceroute showing inter-branch traffic routing directly between spokes. |
+| **Path Verification** | `traceroute-branch-2-to-1-before-after.png`| Side-by-side traceroute comparison demonstrating Hub bypass. |
+| **Path Verification** | `branch-2-to-1-traceroute-after.png` | Traceroute post-broadband failure showing clean failover to MPLS. |
+| **Path Verification** | `branch-2-to-1-traceroute-after-remote-ip.png` | Traceroute verifying spoke next-hop preservation across underlays. |
+| **Packet Sniffer** | `fortinet-sniff-test-mpls.png` | CLI sniffer on Branch 2 verifying ICMP frames egressing `ADVPN-MPLS` to HQ. |
+| **Packet Sniffer** | `fortinet-sniff-test-broadband.png` | CLI sniffer on Branch 2 verifying ICMP frames egressing `ADVPN-BROADBAND` to Branch 1. |
+| **Dynamic Shortcut (IKE)**| `dynamic-tunnel-branch-1.png` | Wire capture of IKE Phase 1 handshake negotiated directly on Branch 1. |
+| **Dynamic Shortcut (IKE)**| `dynamic-tunnel-branch-2.png` | Wire capture of IKE Phase 1 handshake negotiated directly on Branch 2. |
+| **Shortcut Telemetry** | `diagnose-vpn-branch-2-to-branch-1-964.png`| Baseline shortcut tunnel status showing `mode=dial_inst/3` and 964 encrypted packets. |
+| **Shortcut Telemetry** | `diagnose-vpn-branch-2-to-branch-1-984.png`| **Smoking Gun:** Tunnel counter rising to 984 packets (+20) during live spoke-to-spoke ping. |
+| **Underlay Captures** | `wireshark-esp-hq-branch-1.png` | Wireshark capture of ESP underlay frames between HQ and Branch 1. |
+| **Underlay Captures** | `wireshark-esp-hq-branch-2.png` | Wireshark capture of ESP underlay frames between HQ and Branch 2 (`10.0.1.10 ↔ 10.0.1.2`). |
+| **Direct Spoke Captures**| `wireshark-esp-branch-1-to-2.png` | Wire capture proving direct ESP encapsulation from Branch 1 to Branch 2. |
+| **Direct Spoke Captures**| `wireshark-esp-branch-2-to-1.png` | Wire capture proving direct ESP encapsulation from Branch 2 to Branch 1 (`10.0.2.10 ↔ 10.0.2.2`). |
+| **Failover Injection** | `branch-2-to-1-intentional-failure.png`| Cisco console output showing administrative shutdown of `FastEthernet4/0` on `ISP-B`. |
+| **Failover Reaction** | `branch-2-to-branch-1-health-check.png`| SD-WAN health check detecting Broadband dead (`100.000% loss`) and failing over to MPLS. |
+| **Failover Reaction** | `branch-1-to-hq-health-mpls-dead.png` | Telemetry showing health check reaction when MPLS underlay is impaired. |
+| **Failover Reaction** | `branch-2-to-1-diagnose-service.png` | SD-WAN service table showing dynamic demotion of the failed circuit and promotion of MPLS. |
 
 ---
 
