@@ -182,7 +182,7 @@ Both circuits meet SLA requirements (`sla_map=0x1`). Member 1 (`port2`) is activ
 
 ![sd-wan](screenshots/latency-test-traceroute-after.png)
 
-![sd-wan](screenshots/latency-test-traceroute-before-after.png)
+![sd-wan](screenshots/latency-traceroute-before-after.png)
 
 ---
 
