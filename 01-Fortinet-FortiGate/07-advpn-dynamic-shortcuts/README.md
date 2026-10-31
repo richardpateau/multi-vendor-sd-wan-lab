@@ -323,7 +323,7 @@ Dst address(1):
 
 #### Verification 1: Branch 2 to HQ Target (10.10.10.10) over MPLS
 
-1. **End-to-End ICMP Reachability from `Branch-2-PC`:**
+1. **End-to-End ICMP Reachability from Branch-2-PC:**
    ```bash
    localhost:~# ping 10.10.10.10 
    PING 10.10.10.10 (10.10.10.10): 56 data bytes
@@ -516,8 +516,6 @@ When **Branch-2-PC (10.30.30.10)** initiated an ICMP stream targeting **Branch-1
 ![sd-wan](screenshots/ping-success-branch2-to-1.png)
 
 1. **First Packet Egress:** Routed through the Hub via ADVPN-MPLS (10.0.1.2).
-
-![sd-wan](screenshots/port-1-to-vpn-mpls-branch-2.png)
 
 2. **NHRP Redirect Trigger:** The Hub detected that ingress and egress interfaces were both in the ADVPN domain and transmitted an NHRP redirect to Branch 2.
 3. **Dynamic IKEv2 Shortcut Negotiation:**
