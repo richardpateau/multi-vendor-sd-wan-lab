@@ -194,7 +194,7 @@ Both circuits meet SLA requirements (`sla_map=0x1`). Member 1 (`port2`) is activ
    localhost:~# sudo tc qdisc del dev eth1 root 2>/dev/null
    localhost:~# sudo tc qdisc add dev eth1 root netem delay 20ms 25ms
    ```
-![sd-wan](screenshots/jitter-intentional-config.png)
+![sd-wan](screenshots/jitter-test-intentional-config.png)
 
 2. **FortiGate SLA Telemetry:**
    * Jitter spikes to **10.799 ms** (> 10 ms ceiling).
