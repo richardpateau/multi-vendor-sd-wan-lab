@@ -274,7 +274,7 @@ Both circuits meet SLA requirements (`sla_map=0x1`). Member 1 (`port2`) is activ
 
 ![sd-wan](screenshots/overall-diagnose-service.png)
 
-3. **The "Money Shot" Packet Sequence Hand-off:**
+3. **Wireshark Packet Sequence Hand-off:**
    * **`port2` Capture:** ICMP Echo Requests terminate at sequence **`seq=99`**.
    * **`port3` Capture:** ICMP Echo Requests resume at sequence **`seq=100`**.
    * **Traceroute:** Egress definitively locked to `10.0.2.1` (`ISP-B`).
@@ -331,7 +331,6 @@ Both circuits meet SLA requirements (`sla_map=0x1`). Member 1 (`port2`) is activ
 | **Phase 5: Combined** | `ALL THREE port 3 ping starts at seq 100.png` | **The Money Shot:** Wireshark on `port3` showing traffic resuming at sequence `seq=100`. |
 | **Phase 5: Combined** | `ALL THREE traceroute after .png` | Final traceroute verifying traffic traversing Broadband gateway `10.0.2.1`. |
 | **Video Proof** | `sd-wan-latency-test-2026-10-29_06.31.06.mp4` | Live screen capture of degradation injection, instantaneous failover, and ping continuity. |
-| **Runbook** | `runbook` | Operational Runbook containing diagnostic procedures, `netem` syntax, and SLA tuning commands. |
 
 ---
 
