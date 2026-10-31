@@ -127,18 +127,10 @@ Both circuits meet SLA requirements (`sla_map=0x1`). Member 1 (`port2`) is activ
 
 
 2. **SD-WAN Service Rule 6 Baseline:**
-   ```text
-   FortiGate-VM64-KVM # diagnose sys sdwan service 6
-   Service(6): Address Mode(IPV4) flags=0x200 use-shortcut-sla
-   Tie break: cfg
-   Gen(1), Protocol(0: 1->65535), Mode(sla), sla-compare-number
-   Members(2):
-     1: Seq_num(1 port2), alive, sla(0x1), gid(0), cfg_order(0), local cost(0), selected
-     2: Seq_num(2 port3), alive, sla(0x2), gid(0), cfg_order(1), local cost(0), selected
-   ```
+   
 ![sd-wan](screenshots/diagnose-sd-wan-service.png)
 
-3. **Traceroute Baseline (Egress via `10.0.1.1` - MPLS):**
+3. **Traceroute Baseline (Egress via 10.0.1.1 - MPLS):**
    ```text
    localhost:~# traceroute 192.168.2.10
     1  192.168.1.1 (192.168.1.1)    2.951 ms
@@ -157,7 +149,7 @@ Both circuits meet SLA requirements (`sla_map=0x1`). Member 1 (`port2`) is activ
    ```bash
    localhost:~# sudo tc qdisc add dev eth1 root netem delay 70ms
    ```
-![sd-wan](screenshots/latency-intentional-config.png)
+![sd-wan](screenshots/latency-test-intentional-config.png)
 
 2. **FortiGate SLA Telemetry:**
    * Latency rises to **80.387 ms** (> 50 ms threshold).
